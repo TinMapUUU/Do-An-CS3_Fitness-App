@@ -7,23 +7,23 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.doancs3_new.DetailProf.AllDetailProfile
-import com.doancs3_new.DetailProf.Gender
-import com.doancs3_new.Onboarding.OnboardingPagerScreen
-import com.doancs3_new.Onboarding.StartScreen
-import com.doancs3_new.RegLogFor.Login
-import com.doancs3_new.RegLogFor.Register
-import com.doancs3_new.Onboarding.Screen1
-import com.doancs3_new.Onboarding.Screen2
-import com.doancs3_new.Onboarding.Screen3
-import com.doancs3_new.Onboarding.Screen4
-import com.doancs3_new.RegLogFor.ForgetPass
-import com.doancs3_new.RegLogFor.ResetPass
-import com.doancs3_new.RegLogFor.VerifiCode
+import com.doancs3_new.Viewmodel.SharedViewModel
+import com.doancs3_new.all_UI.Dashboard.HomeSummaryScreen
+import com.doancs3_new.all_UI.DetailProf.AllDetailProfile
+import com.doancs3_new.all_UI.Onboarding.OnboardingPagerScreen
+
+import com.doancs3_new.all_UI.Onboarding.StartScreen
+import com.doancs3_new.all_UI.RegLogFor.ForgetPass
+import com.doancs3_new.all_UI.RegLogFor.Login
+import com.doancs3_new.all_UI.RegLogFor.Register
+import com.doancs3_new.all_UI.RegLogFor.ResetPass
+import com.doancs3_new.all_UI.RegLogFor.VerifiCode
+
 
 class MainActivity : ComponentActivity() { // Đổi tên thành MainActivity
     @RequiresApi(Build.VERSION_CODES.M)
@@ -58,5 +58,20 @@ fun HostUI(navController: NavHostController) {
 
         //DETAIL PROFILE
         composable("All Detail Profile") { AllDetailProfile( navController) }
+
+        //DASH BOARD
+        composable("Home") {
+            val sharedViewModel: SharedViewModel = viewModel()
+            HomeSummaryScreen(
+                name = sharedViewModel.name,
+                currentWeight = sharedViewModel.currentWeight,
+                targetWeight = sharedViewModel.targetWeight,
+                heightCm = sharedViewModel.heightCm,
+                durationMonths = 6, // Nếu có lưu thời gian tập
+                workoutLocation = "Fitness Center", // Nếu có
+                navController = navController
+            )
+        }
+
     }
 }
