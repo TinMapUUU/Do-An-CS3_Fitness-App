@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,57 +14,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.doancs3_new.all_UI.RegLogFor.textFieldBorder
-import com.doancs3_new.Viewmodel.SharedViewModel
-import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SkyBlue
 import com.tbuonomo.viewpagerdotsindicator.compose.DotsIndicator
 import com.tbuonomo.viewpagerdotsindicator.compose.model.DotGraphic
 import com.tbuonomo.viewpagerdotsindicator.compose.type.WormIndicatorType
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.M)
-@Preview(showBackground = true)
 @Composable
-fun PreviewName() {
-    val navController = rememberNavController()
-    val pagerState = rememberPagerState(initialPage = 1) { 9}
-    Name(navController = navController, pagerState = pagerState)
-}
-
-// Hàm design TextField
-@Composable
-fun rememberTextFieldColors(): TextFieldColors {
-    return TextFieldDefaults.colors(
-        focusedContainerColor = Color.Transparent, // Không có màu nền
-        unfocusedContainerColor = Color.Transparent, // Màu nền khi chưa focus
-//        disabledContainerColor = Color.Transparent,
-//        errorContainerColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent, // Viền khi chưa focus
-        focusedIndicatorColor = LightPeriwinkleBlue, // Viền khi focus
-        cursorColor = LightPeriwinkleBlue, // Màu con trỏ
-        focusedLabelColor = Gray1,
-        unfocusedLabelColor = Gray1
-    )
-}
-
-
-@Composable
-fun Name(
-    navController: NavController = rememberNavController(),
-    pagerState: PagerState = rememberPagerState(initialPage = 1) { 9 },
-    viewModel: SharedViewModel = hiltViewModel()
+fun Input_crW_H_futW(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    pagerState: PagerState,
+    navController: NavController,
+    coroutineScope: CoroutineScope,
+//    onDone: () -> Unit
 ) {
-    var name by remember { mutableStateOf(viewModel.name) }
-    val coroutineScope = rememberCoroutineScope()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +50,7 @@ fun Name(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Tên của bạn là gì ?",
+                text = label,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -89,25 +60,18 @@ fun Name(
 
             // TextField nhập tên
             TextField(
-                value = name,
-                onValueChange = {
-                    name = it
-                    viewModel.updateName(it) // Cập nhật name vào ViewModel
-                },
-                label = { Text("Tên đầy đủ") },
-                placeholder = { Text("Nhập tên của bạn") },
+                value = value,
+                onValueChange = onValueChange, // Dữ liệu đã cập nhật ở đây rồi
+                label = { Text("Nhập $label") },
+                placeholder = { Text("") },
                 colors = rememberTextFieldColors(),
-
-
-                modifier = textFieldBorder() // Chỉnh Border Text Field
+                modifier = textFieldBorder()
             )
-
-
 
             Spacer(modifier = Modifier.height(150.dp))
         }
 
-        // Dots Indicator
+        // DotsIndicator (giữ nguyên)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -133,7 +97,7 @@ fun Name(
             )
         }
 
-        // Button Next
+        // Button Tiếp theo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,6 +108,7 @@ fun Name(
         ) {
             Button(
                 onClick = {
+//                    onDone() // ✅ Gọi callback xác nhận giá trị Input
                     coroutineScope.launch {
                         if (pagerState.currentPage < pagerState.pageCount - 1) {
                             pagerState.animateScrollToPage(
@@ -157,8 +122,12 @@ fun Name(
                         }
                     }
                 },
+                enabled = value.isNotBlank(),
                 modifier = Modifier.fillMaxSize(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.LightGray
+                ),
                 shape = RoundedCornerShape(18.dp),
                 contentPadding = PaddingValues()
             ) {
@@ -169,6 +138,7 @@ fun Name(
                 )
             }
         }
+
     }
 }
 

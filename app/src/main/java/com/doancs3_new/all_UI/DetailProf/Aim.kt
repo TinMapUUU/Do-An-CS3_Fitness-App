@@ -20,8 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.doancs3_new.Viewmodel.SharedViewModel
 import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SkyBlue
@@ -34,9 +36,7 @@ import kotlinx.coroutines.launch
 @Preview(showBackground = true)
 @Composable
 fun PreviewAim() {
-    Aim(
-
-    )
+    Aim()
 }
 
 @RequiresApi(Build.VERSION_CODES.M)
@@ -44,7 +44,8 @@ fun PreviewAim() {
 fun Aim(
 //    onNextClick: () -> Unit,
     navController: NavController = rememberNavController(),
-    pagerState: PagerState = rememberPagerState(initialPage = 8) { 9 }
+    pagerState: PagerState = rememberPagerState(initialPage = 8) { 9 },
+    sharedViewModel: SharedViewModel = hiltViewModel()
 ) {
     var selectedAim by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -175,7 +176,7 @@ fun Aim(
                             )
                         } else {
                             navController.navigate("Home") {
-                                popUpTo("All Detail Profile") { inclusive = true }
+
                             }
                         }
                     }

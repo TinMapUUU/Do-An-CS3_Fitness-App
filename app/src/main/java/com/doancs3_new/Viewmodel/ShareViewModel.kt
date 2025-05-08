@@ -3,47 +3,51 @@ package com.doancs3_new.Viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class SharedViewModel : ViewModel() {
-    //Thuộc tính quản lý thông tin người dùng
-    var name by mutableStateOf("") // Tên người dùng
+@HiltViewModel
+class SharedViewModel @Inject constructor() : ViewModel() {
+
+    var name by mutableStateOf("")
         private set
 
-    var age by mutableStateOf(0) // Tuổi người dùng
+    var age by mutableStateOf(0)
         private set
 
-    var currentWeight by mutableStateOf(0) // Cân nặng hiện tại
-        private set
+    // Nhập liệu dạng chuỗi (hiển thị trong TextField)
+    var currentWeightInput by mutableStateOf("")
+    var targetWeightInput by mutableStateOf("")
+    var heightInput by mutableStateOf("")
 
-    var targetWeight by mutableStateOf(0) // Cân nặng mong muốn
-        private set
+    // Dùng để tính toán hoặc lưu trữ dữ liệu sạch
+    val currentWeight: Int? get() = currentWeightInput.toIntOrNull()
+    val targetWeight: Int? get() = targetWeightInput.toIntOrNull()
+    val heightCm: Int? get() = heightInput.toIntOrNull()
 
-    var heightCm by mutableStateOf(0) // Chiều cao (cm)
-        private set
-
-    //Cập nhật thông tin age
-    fun updateAge(newAge: Int) {
-        age = newAge
-    }
-
-    //Cập nhật thông tin name
+    // Cập nhật dữ liệu nhập
     fun updateName(newName: String) {
         name = newName
     }
 
-    // Cập nhật cân nặng hiện tại
-    fun updateCurrentWeight(weight: Int) {
-        currentWeight = weight
+    fun updateAge(newAge: Int) {
+        age = newAge
     }
 
-    // Cập nhật cân nặng mong muốn
-    fun updateTargetWeight(weight: Int) {
-        targetWeight = weight
+    fun updateCurrentWeightInput(input: String) {
+        currentWeightInput = input
     }
 
-    // Cập nhật chiều cao (cm)
-    fun updateHeightCm(height: Int) {
-        heightCm = height
+    fun updateTargetWeightInput(input: String) {
+        targetWeightInput = input
+    }
+
+    fun updateHeightInput(input: String) {
+        heightInput = input
     }
 }
+
+
+

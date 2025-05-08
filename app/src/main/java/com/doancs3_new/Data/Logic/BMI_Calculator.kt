@@ -11,9 +11,6 @@ data class BMIResult(
 object BMICalculator {
     // Tính BMI
     fun calculateBMI(weightKg: Int, heightCm: Int): Double {
-        if (heightCm <= 0 || weightKg <= 0) {
-            throw IllegalArgumentException("Cân nặng và chiều cao phải là giá trị hợp lệ và lớn hơn 0")
-        }
         val heightM = heightCm / 100.0
         return weightKg / (heightM * heightM)
     }

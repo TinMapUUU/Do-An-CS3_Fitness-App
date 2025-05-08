@@ -46,7 +46,7 @@ fun PreviewPhysLvl() {
 fun PhysLvl(
 //    onNextClick: () -> Unit,
     navController: NavController = rememberNavController(),
-    pagerState: PagerState = rememberPagerState(initialPage = 4) { 8 }
+    pagerState: PagerState = rememberPagerState(initialPage = 4) { 9 }
 ) {
     var selectedPhysLevel by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()

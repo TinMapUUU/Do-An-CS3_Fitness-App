@@ -19,87 +19,67 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.doancs3_new.Data.Logic.BMICalculator
 import com.doancs3_new.R
 import com.doancs3_new.Viewmodel.SharedViewModel
 
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun HomeSummaryScreenPreview() {
-    val sharedViewModel: SharedViewModel = viewModel()
-//    HomeSummaryScreen(
-//        name = sharedViewModel.name,
-//        currentWeight = sharedViewModel.currentWeight,
-//        targetWeight = sharedViewModel.targetWeight,
-//        heightCm = sharedViewModel.heightCm,
-//        durationMonths = 6,
-//        workoutLocation = "Fitness Center"
-//    )
-
-    // Dữ liệu fake
-    HomeSummaryScreen(
-        name = "Nam Nguyễn",
-        currentWeight = 68,
-        targetWeight = 60,
-        heightCm = 175,
-        durationMonths = 6,
-        workoutLocation = "Fitness Center"
-    )
-}
-
-@Composable
-fun HomeSummaryScreen(
-    name: String,
-    currentWeight: Int,
-    targetWeight: Int,
-    heightCm: Int,
-    durationMonths: Int,
-    workoutLocation: String
-
-    navController: NavController = rememberNavController()
+fun Home(
+    viewModel: SharedViewModel
 ) {
-    val bmiResult = BMICalculator.analyzeBMI(
-        currentWeight = currentWeight,
-        targetWeight = targetWeight,
-        heightCm = heightCm
-    )
+    val name = viewModel.name
+    val currentWeight = viewModel.currentWeight
+    val targetWeight = viewModel.targetWeight
+    val heightCm = viewModel.heightCm
+
+    val bmiResult = if (
+        currentWeight != null && targetWeight != null && heightCm != null
+    ) BMICalculator.analyzeBMI(currentWeight, targetWeight, heightCm) else null
 
     Scaffold(
-        bottomBar = {
-            BottomNavigationBar()
-        }
+        bottomBar = { BottomNavigationBar() }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(20.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Để cho phép cuộn
-
+                .verticalScroll(rememberScrollState())
         ) {
-            // Header
+            // HEADER
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(text = "Chào mừng trở lại,", color = Color.Gray, fontSize = 14.sp)
-                    Text(text = name, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    if (name.isNotBlank()) {
+                        Text("Chào mừng trở lại,", color = Color.Gray, fontSize = 14.sp)
+                        Text(
+                            text = name,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    } else {
+                        Text(
+                            "Chào mừng đến với ứng dụng!",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = Color.Gray
+                        )
+                    }
                 }
-
                 IconButton(onClick = { }) {
-                    Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                    Icon(Icons.Default.Notifications, contentDescription = "Thông báo")
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            // MỤC TIÊU
             Text("Quá trình", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Mục tiêu + Placeholder biểu đồ
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,23 +88,44 @@ fun HomeSummaryScreen(
                     .background(Color(0xFFE7EBFF)),
                 contentAlignment = Alignment.Center
             ) {
-                when (bmiResult.goal.lowercase()) {
-                    "tăng cân" -> Text("Mục tiêu: Tăng cân", color = Color(0xFF4CAF50), fontSize = 16.sp)
-                    "giảm cân" -> Text("Mục tiêu: Giảm cân", color = Color(0xFFF44336), fontSize = 16.sp)
-                    "giữ dáng" -> Text("Mục tiêu: Giữ dáng", color = Color(0xFF2196F3), fontSize = 16.sp)
-                    else -> Text("Biểu đồ đường sẽ hiển thị tại đây", color = Color.Gray)
+                if (bmiResult != null) {
+                    val color = when (bmiResult.goal.lowercase()) {
+                        "tăng cân" -> Color(0xFF4CAF50)
+                        "giảm cân" -> Color(0xFFF44336)
+                        "giữ dáng" -> Color(0xFF2196F3)
+                        else -> Color.Gray
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Mục tiêu: ${bmiResult.goal}",
+                            color = color,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "BMI hiện tại: %.2f".format(bmiResult.currentBMI),
+                            fontSize = 16.sp,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "BMI mục tiêu: %.2f".format(bmiResult.targetBMI),
+                            fontSize = 16.sp,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = "Tình trạng: ${bmiResult.description}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Gray
+                        )
+                    }
                 }
             }
 
-            // Thêm thông tin người dùng nếu muốn
-//            Spacer(modifier = Modifier.height(20.dp))
-//            Text("Thông tin tập luyện", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-//            Spacer(modifier = Modifier.height(10.dp))
-//            Text("Cân nặng hiện tại: $currentWeight kg")
-//            Text("Cân nặng mong muốn: $targetWeight kg")
-//            Text("Chiều cao: $heightCm cm")
-//            Text("Thời gian tập: $durationMonths tháng")
-//            Text("Địa điểm: $workoutLocation")
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Nội dung khác...", fontSize = 16.sp)
         }
     }
 }
@@ -137,28 +138,28 @@ fun BottomNavigationBar() {
     ) {
         NavigationBarItem(
             selected = true,
-            onClick = { /* TODO: điều hướng */ },
-            icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Trang chủ") },
-            label = { Text("Home") }
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { /* TODO: điều hướng */ },
+            onClick = { },
             icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Trang chủ") },
             label = { Text("Home") }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { /* TODO: điều hướng */ },
+            onClick = { },
             icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Biểu đồ") },
             label = { Text("Chart") }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { /* TODO: điều hướng */ },
+            onClick = { },
             icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Hồ sơ") },
             label = { Text("Profile") }
         )
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun HomeSummaryScreenPreview() {
+    val viewModel: SharedViewModel = viewModel()
+    Home(viewModel = viewModel)
+}
