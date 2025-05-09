@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.doancs3_new.Data.Local.Dao.UserDao
 import com.doancs3_new.Viewmodel.SharedViewModel
+import com.doancs3_new.Viewmodel.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 
 
@@ -25,9 +27,13 @@ fun PreviewAllDetailProfile() {
 @SuppressLint("NewApi")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AllDetailProfile(navController: NavController, sharedViewModel: SharedViewModel, coroutineScope: CoroutineScope) {
-    val pagerState = rememberPagerState(initialPage = 0) { 9 } // Đảm bảo số trang là hợp lý
-//    val coroutineScope = rememberCoroutineScope()
+fun AllDetailProfile(
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+    userViewModel: UserViewModel,
+    coroutineScope: CoroutineScope,
+    ) {
+    val pagerState = rememberPagerState(initialPage = 0) { 9 }// Đảm bảo số trang là hợp lý
 
     Column {
         HorizontalPager(
@@ -38,14 +44,14 @@ fun AllDetailProfile(navController: NavController, sharedViewModel: SharedViewMo
         ) { page ->
             when (page) {
                 0 -> Gender(navController, pagerState) // Chuyển trang đúng
-                1 -> Name(navController, pagerState, sharedViewModel)
+                1 -> Name(navController, pagerState, sharedViewModel, userViewModel)
                 2 -> Ages(navController, pagerState)
                 3 -> Location(navController, pagerState)
                 4 -> PhysLvl(navController, pagerState)
                 5 -> WeightCurrent(navController, pagerState, sharedViewModel, coroutineScope)
                 6 -> HeightCurrent(navController, pagerState, sharedViewModel, coroutineScope)
                 7 -> WeightFuture(navController, pagerState, sharedViewModel, coroutineScope)
-                8 -> Aim(navController, pagerState)
+                8 -> Aim(navController, pagerState, sharedViewModel, userViewModel)
             }
         }
     }

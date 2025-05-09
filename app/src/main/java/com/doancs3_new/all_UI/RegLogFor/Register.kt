@@ -1,5 +1,7 @@
 package com.doancs3_new.all_UI.RegLogFor
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +32,7 @@ import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LavenderPink
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SoftBlue
+import com.google.firebase.auth.FirebaseAuth
 
 @Preview(showBackground = true)
 @Composable
@@ -91,6 +95,7 @@ fun Register(navController: NavController) {
         Text("Tạo một tài khoản mới", fontSize = 24.sp, color = Color.Black)
         Spacer(modifier = Modifier.height(16.dp))
 
+// Tên Text Field
         TextField(
             value = firstName,
             onValueChange = { firstName = it },
@@ -108,6 +113,7 @@ fun Register(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
+// Họ Text Field
         TextField(
             value = lastName,
             onValueChange = { lastName = it },
@@ -125,6 +131,7 @@ fun Register(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
+// Email Text Field
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -143,6 +150,7 @@ fun Register(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
+// Password Text Field
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -161,6 +169,7 @@ fun Register(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
+// Checkbox Accept Terms
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = acceptTerms,
@@ -172,7 +181,7 @@ fun Register(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Register Button với Gradient
+// Register Button với Gradient
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,8 +189,32 @@ fun Register(navController: NavController) {
                 .background(gradient(), shape = RoundedCornerShape(28.dp)) // Áp dụng gradient
                 .clip(RoundedCornerShape(28.dp)) // Bo góc để khớp với button
         ) {
+
+            // Chức năng đăng ký lưu với FIREBASE
+            val context = LocalContext.current
+            val firebaseAuth = FirebaseAuth.getInstance()
             Button(
-                onClick = { /* Handle login logic */ },
+                onClick = {
+                    if (email.isNotBlank() && password.isNotBlank()) {
+                        firebaseAuth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val user = firebaseAuth.currentUser
+                                    val uid = user?.uid ?: return@addOnCompleteListener
+
+                                    // Lưu thông tin vào Room/Firebase Database tại đây nếu muốn
+                                    Toast.makeText(context, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
+                                    
+                                    navController.navigate("RLF - Login") // Chuyển đến màn hình Login
+                                } else {
+                                    Log.e("FirebaseAuth", "Đăng ký thất bại: ${task.exception?.message}")
+                                    Toast.makeText(context, "Lỗi: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                    } else {
+                        Toast.makeText(context, "Vui lòng nhập đầy đủ Email và Mật khẩu", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier.fillMaxSize(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent), // Để màu nền của Button trong suốt
             ) {

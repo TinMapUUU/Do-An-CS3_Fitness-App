@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import com.doancs3_new.Data.Local.Dao.UserDao
+import com.doancs3_new.Data.Model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -14,8 +16,10 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     var name by mutableStateOf("")
         private set
 
-    var age by mutableStateOf(0)
-        private set
+    var firstName by mutableStateOf("")
+    var lastName by mutableStateOf("")
+    var nickname by mutableStateOf("")
+    var email by mutableStateOf("")
 
     // Nhập liệu dạng chuỗi (hiển thị trong TextField)
     var currentWeightInput by mutableStateOf("")
@@ -28,13 +32,18 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     val heightCm: Int? get() = heightInput.toIntOrNull()
 
     // Cập nhật dữ liệu nhập
-    fun updateName(newName: String) {
-        name = newName
+    fun updateFirstName(newFirstName: String) {
+        firstName = newFirstName
     }
 
-    fun updateAge(newAge: Int) {
-        age = newAge
+    fun updateLastName(newLastName: String) {
+        lastName = newLastName
     }
+
+    fun updateNickname(newNickname: String) {
+        nickname = newNickname
+    }
+
 
     fun updateCurrentWeightInput(input: String) {
         currentWeightInput = input
@@ -46,6 +55,24 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     fun updateHeightInput(input: String) {
         heightInput = input
+    }
+
+    // Lưu thông tin vào database
+    suspend fun saveUserProfile(userDao: UserDao) {
+        val user = User(
+            email = email,
+            firstName = firstName,
+            lastName = lastName,
+            nickname = nickname, // nickname sau khi nhập
+            height = heightCm ?: 0,
+            currentWeight = currentWeight ?: 0,
+            targetWeight = targetWeight ?: 0
+        )
+        userDao.insertUser(user) // Insert user vào database
+    }
+
+    suspend fun updateNicknameInDatabase(userDao: UserDao, newNickname: String) {
+        userDao.updateNickname(email, newNickname)
     }
 }
 

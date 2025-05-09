@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.doancs3_new.Viewmodel.SharedViewModel
+import com.doancs3_new.Viewmodel.UserViewModel
 import com.doancs3_new.all_UI.Dashboard.Home
 import com.doancs3_new.all_UI.DetailProf.AllDetailProfile
 import com.doancs3_new.all_UI.Onboarding.OnboardingPagerScreen
@@ -26,7 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() { // Đổi tên thành MainActivity
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -36,14 +36,13 @@ class MainActivity : ComponentActivity() { // Đổi tên thành MainActivity
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun HostUI(navController: NavHostController) {
     val viewModel: SharedViewModel = hiltViewModel()
     NavHost(
         navController = navController,
-//        startDestination = "startScreen"
-        startDestination = "All Detail Profile"
+        startDestination = "startScreen"
+//        startDestination = "All Detail Profile"
     ) {
         // ON BOARDING
         composable("startScreen") { StartScreen(navController) }
@@ -60,10 +59,14 @@ fun HostUI(navController: NavHostController) {
         composable("All Detail Profile") {
             val sharedViewModel: SharedViewModel = hiltViewModel()
             val coroutineScope = rememberCoroutineScope()
+            // Đảm bảo viewModel của bạn được inject đúng cách
+            val userViewModel: UserViewModel = hiltViewModel()
+            // Thay vì truyền userDao như một ViewModel, bạn chỉ cần lấy thông qua viewModel
             AllDetailProfile(
                 navController = navController,
                 sharedViewModel = sharedViewModel,
-                coroutineScope = coroutineScope
+                coroutineScope = coroutineScope,
+                userViewModel = userViewModel // Truyền đúng viewModel
             )
         }
 

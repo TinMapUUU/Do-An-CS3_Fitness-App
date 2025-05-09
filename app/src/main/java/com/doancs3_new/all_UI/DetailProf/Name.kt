@@ -21,8 +21,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.doancs3_new.Data.Local.Dao.UserDao
 import com.doancs3_new.all_UI.RegLogFor.textFieldBorder
 import com.doancs3_new.Viewmodel.SharedViewModel
+import com.doancs3_new.Viewmodel.UserViewModel
 import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SkyBlue
@@ -31,13 +33,10 @@ import com.tbuonomo.viewpagerdotsindicator.compose.model.DotGraphic
 import com.tbuonomo.viewpagerdotsindicator.compose.type.WormIndicatorType
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.M)
 @Preview(showBackground = true)
 @Composable
 fun PreviewName() {
-    val navController = rememberNavController()
-    val pagerState = rememberPagerState(initialPage = 1) { 9}
-    Name(navController = navController, pagerState = pagerState)
+
 }
 
 // Hàm design TextField
@@ -61,9 +60,10 @@ fun rememberTextFieldColors(): TextFieldColors {
 fun Name(
     navController: NavController = rememberNavController(),
     pagerState: PagerState = rememberPagerState(initialPage = 1) { 9 },
-    viewModel: SharedViewModel = hiltViewModel()
+    viewModel: SharedViewModel = hiltViewModel(),
+    userViewModel: UserViewModel // THAY vì truyền userDao
 ) {
-    var name by remember { mutableStateOf(viewModel.name) }
+    var nickname by remember { mutableStateOf(viewModel.nickname) }
     val coroutineScope = rememberCoroutineScope()
 
     Box(
@@ -87,22 +87,18 @@ fun Name(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // TextField nhập tên
+            // TextField nhập tên (nick name)
             TextField(
-                value = name,
+                value = nickname,
                 onValueChange = {
-                    name = it
-                    viewModel.updateName(it) // Cập nhật name vào ViewModel
+                    nickname = it
+                    viewModel.updateNickname(it) // Cập nhật nick name vào ViewModel
                 },
-                label = { Text("Tên đầy đủ") },
-                placeholder = { Text("Nhập tên của bạn") },
+                label = { Text("Tên gọi (nickname)") },
+                placeholder = { Text("Nhập tên gọi của bạn") },
                 colors = rememberTextFieldColors(),
-
-
                 modifier = textFieldBorder() // Chỉnh Border Text Field
             )
-
-
 
             Spacer(modifier = Modifier.height(150.dp))
         }
@@ -150,15 +146,23 @@ fun Name(
                                 page = pagerState.currentPage + 1,
                                 animationSpec = tween(durationMillis = 1000)
                             )
+                            // Gọi từ viewModel thay vì dùng userDao trực tiếp
+                            userViewModel.saveUserFromShared(viewModel)
+
                         } else {
+
                             navController.navigate("Home") {
                                 popUpTo("All Detail Profile") { inclusive = true }
                             }
                         }
                     }
                 },
+                enabled = nickname.isNotBlank(), // Kiểm tra nếu tên trống
                 modifier = Modifier.fillMaxSize(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.LightGray
+                ),
                 shape = RoundedCornerShape(18.dp),
                 contentPadding = PaddingValues()
             ) {
@@ -171,4 +175,5 @@ fun Name(
         }
     }
 }
+
 

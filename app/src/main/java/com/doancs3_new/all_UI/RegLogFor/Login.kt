@@ -1,5 +1,6 @@
 package com.doancs3_new.all_UI.RegLogFor
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import com.doancs3_new.R
 import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LavenderPink
+import com.google.firebase.auth.FirebaseAuth
 
 @Preview(showBackground = true)
 @Composable
@@ -45,15 +47,14 @@ fun Login(navController: NavController) {
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Welcome Back
+// Welcome Back
         Spacer(modifier = Modifier.height(16.dp))
         Text("Chào đằng đó,", fontSize = 16.sp, color = Color.Gray)
         Text("Chào mừng trở lại", fontSize = 24.sp, color = Color.Black,
                     style = TextStyle(fontWeight = FontWeight.Bold))
         Spacer(modifier = Modifier.height(32.dp))
 
-
-        // Email Text Field
+// Email Text Field
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -74,8 +75,7 @@ fun Login(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-
-        // Password Text Field
+// Password Text Field
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -96,7 +96,7 @@ fun Login(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Forget Password
+// Forget Password
         TextButton(onClick = {
             navController.navigate("RLF - Forget Password")
         }) {
@@ -104,7 +104,7 @@ fun Login(navController: NavController) {
         }
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Login Button với Gradient
+// Login Button với Gradient
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -112,8 +112,26 @@ fun Login(navController: NavController) {
                 .background(gradient(), shape = RoundedCornerShape(28.dp)) // Áp dụng gradient
                 .clip(RoundedCornerShape(28.dp)) // Bo góc để khớp với button
         ) {
+
+            //
+            val firebaseAuth = FirebaseAuth.getInstance()
+            val context = LocalContext.current
             Button(
-                onClick = { navController.navigate("All Detail Profile") },
+                onClick = {
+                    if (email.isNotBlank() && password.isNotBlank()) {
+                        firebaseAuth.signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("All Detail Profile") // Chuyển tiếp
+                                } else {
+                                    Toast.makeText(context, "Sai thông tin đăng nhập", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                    } else {
+                        Toast.makeText(context, "Vui lòng nhập đầy đủ Email và Mật khẩu", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier.fillMaxSize(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent), // Để màu nền của Button trong suốt
             ) {
@@ -125,7 +143,7 @@ fun Login(navController: NavController) {
         Text("hoặc", fontSize = 16.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Social Function Link
+// Social Function Link
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
@@ -138,7 +156,6 @@ fun Login(navController: NavController) {
             }
             Spacer(modifier = Modifier.width(16.dp))
 
-
             IconButton(onClick = { /* Handle Facebook login */ }) {
                 Image(
                     painterResource(R.drawable.ic_facebook),
@@ -148,6 +165,7 @@ fun Login(navController: NavController) {
         }
         Spacer(modifier = Modifier.height(28.dp))
 
+// Chuyển đến màn hình Register
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
