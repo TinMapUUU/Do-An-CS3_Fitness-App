@@ -9,9 +9,9 @@ import com.doancs3_new.Data.Model.ProgressLog
 import com.doancs3_new.Data.Model.User
 import com.doancs3_new.Data.Model.Workout
 
-@Database(entities = [User::class, Workout::class, ProgressLog::class], version = 1)
+@Database(entities = [User::class, Workout::class, ProgressLog::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun progressDao(): ProgressDao
     abstract fun userDao(): UserDao
     abstract fun workoutDao(): WorkoutDao
+    abstract fun progressDao(): ProgressDao
 }

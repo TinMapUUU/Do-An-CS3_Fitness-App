@@ -10,6 +10,6 @@ interface ProgressDao {
     @Insert
     suspend fun insertLog(log: ProgressLog)
 
-    @Query("SELECT * FROM ProgressLog WHERE userId = :uid ORDER BY date ASC")
+    @Query("SELECT * FROM progress_logs WHERE userId = :uid ORDER BY date ASC")
     suspend fun getLogsForUser(uid: String): List<ProgressLog>
 }

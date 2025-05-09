@@ -9,7 +9,7 @@ class UserRepository @Inject constructor(
 ) {
     suspend fun insertUser(user: User) = userDao.insertUser(user)
 
-    suspend fun getUserById(uid: String): User? = userDao.getUserById(uid)
+    suspend fun getUserById(uid: String): User? = userDao.getUserByEmail(uid)
 
     suspend fun updateUser(user: User) = userDao.updateUser(user)
 

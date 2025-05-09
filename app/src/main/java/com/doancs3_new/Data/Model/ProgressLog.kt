@@ -3,7 +3,6 @@ package com.doancs3_new.Data.Model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-
 @Entity(tableName = "progress_logs")
 data class ProgressLog(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

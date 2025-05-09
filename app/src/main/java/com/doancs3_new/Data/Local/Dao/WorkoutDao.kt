@@ -14,7 +14,7 @@ interface WorkoutDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkout(workout: Workout)
 
-    @Query("SELECT * FROM Workout")
+    @Query("SELECT * FROM workouts")
     suspend fun getAllWorkouts(): List<Workout>
 
     @Update
