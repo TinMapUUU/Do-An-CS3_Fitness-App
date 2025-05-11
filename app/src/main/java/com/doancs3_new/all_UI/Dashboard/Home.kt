@@ -1,6 +1,8 @@
 package com.doancs3_new.all_UI.Dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,10 +11,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -120,12 +128,28 @@ fun Home(
                             color = Color.Gray
                         )
                     }
+                } else {
+//                    Text(text = "Đây là phần của line chart", fontSize = 16.sp)
+                    Image(
+                        painter = painterResource(id = R.drawable.chart_line),
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(440.dp)
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Nội dung khác...", fontSize = 16.sp)
+            Text("Nội dung bài tập", fontSize = 16.sp)
+
+            //fake UI workout
+            SimpleExerciseDayUI()
+            SimpleExerciseDayUI()
+            SimpleExerciseDayUI()
+
         }
     }
 }
@@ -145,14 +169,14 @@ fun BottomNavigationBar() {
         NavigationBarItem(
             selected = false,
             onClick = { },
-            icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Biểu đồ") },
-            label = { Text("Chart") }
+            icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Lịch") },
+            label = { Text("Lịch ") }
         )
         NavigationBarItem(
             selected = false,
             onClick = { },
             icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Hồ sơ") },
-            label = { Text("Profile") }
+            label = { Text("Hồ sơ") }
         )
     }
 }
@@ -163,4 +187,89 @@ fun HomeSummaryScreenPreview() {
     val viewModel: SharedViewModel = viewModel()
     Home(viewModel = viewModel)
 }
+
+// fake UI
+// Dữ liệu tạm
+//data class Task(
+//    val id: Int,
+//    val name: String,
+//    val description: String,
+//    var isChecked: Boolean = false
+//)
+
+@Composable
+fun SimpleExerciseDayUI() {
+    val taskList = remember {
+        mutableStateListOf(
+            mutableStateOf(Triple("Hít đất", "Thực hiện 3 hiệp, mỗi hiệp 15 cái. Nghỉ 1 phút.", false)),
+            mutableStateOf(Triple("Gập bụng", "Gập 4 hiệp, mỗi hiệp 20 cái. Giữ nhịp thở đều.", false)),
+            mutableStateOf(Triple("Plank", "Giữ plank 1 phút, lặp lại 3 lần.", false))
+        )
+    }
+
+    var expandedIndex by remember { mutableStateOf(-1) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+            .background(Color(0xFFE8F5E9), RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        Text("Ngày 1", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        taskList.forEachIndexed { index, taskState ->
+            val (title, description, checked) = taskState.value
+            val isExpanded = expandedIndex == index
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painterResource(R.drawable.gym_svg),
+                    contentDescription = "",
+                    modifier = Modifier.size(30.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 10.dp)
+                ) {
+                    Text(title, fontWeight = FontWeight.SemiBold)
+
+                    val desc = if (isExpanded || description.length <= 40)
+                        description
+                    else
+                        description.take(40) + "..."
+
+                    Text(
+                        text = desc,
+                        fontSize = 13.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.clickable {
+                            expandedIndex = if (isExpanded) -1 else index
+                        }
+                    )
+                }
+
+                Checkbox(
+                    checked = checked,
+                    onCheckedChange = {
+                        taskList[index].value = taskState.value.copy(third = it)
+                    }
+                )
+            }
+
+            Divider()
+        }
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+}
+
 

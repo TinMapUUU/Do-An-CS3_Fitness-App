@@ -43,6 +43,7 @@ fun HostUI(navController: NavHostController) {
         navController = navController,
         startDestination = "startScreen"
 //        startDestination = "All Detail Profile"
+//        startDestination = "Home"
     ) {
         // ON BOARDING
         composable("startScreen") { StartScreen(navController) }
