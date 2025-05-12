@@ -3,35 +3,33 @@ package com.doancs3_new.Viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.doancs3_new.Data.Local.Dao.UserDao
 import com.doancs3_new.Data.Model.User
+import com.doancs3_new.Data.Repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class SharedViewModel @Inject constructor() : ViewModel() {
-
-    var name by mutableStateOf("")
-        private set
+class SharedViewModel @Inject constructor(
+    private val userRepo: UserRepository // Sử dụng Firebase repository
+) : ViewModel() {
 
     var firstName by mutableStateOf("")
+        private set
+
     var lastName by mutableStateOf("")
+        private set
     var nickname by mutableStateOf("")
     var email by mutableStateOf("")
 
-    // Nhập liệu dạng chuỗi (hiển thị trong TextField)
     var currentWeightInput by mutableStateOf("")
     var targetWeightInput by mutableStateOf("")
     var heightInput by mutableStateOf("")
 
-    // Dùng để tính toán hoặc lưu trữ dữ liệu sạch
     val currentWeight: Int? get() = currentWeightInput.toIntOrNull()
     val targetWeight: Int? get() = targetWeightInput.toIntOrNull()
-    val heightCm: Int? get() = heightInput.toIntOrNull()
+    val currentHeight: Int? get() = heightInput.toIntOrNull()
 
-    // Cập nhật dữ liệu nhập
     fun updateFirstName(newFirstName: String) {
         firstName = newFirstName
     }
@@ -43,7 +41,6 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     fun updateNickname(newNickname: String) {
         nickname = newNickname
     }
-
 
     fun updateCurrentWeightInput(input: String) {
         currentWeightInput = input
@@ -57,24 +54,20 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         heightInput = input
     }
 
-    // Lưu thông tin vào database
-    suspend fun saveUserProfile(userDao: UserDao) {
+    // Lưu thông tin vào Firebase
+    suspend fun saveUserProfile() {
         val user = User(
             email = email,
             firstName = firstName,
             lastName = lastName,
-            nickname = nickname, // nickname sau khi nhập
-            height = heightCm ?: 0,
+            nickname = nickname,
             currentWeight = currentWeight ?: 0,
-            targetWeight = targetWeight ?: 0
+            currentHeight = currentHeight ?: 0,
+            targetWeight = targetWeight ?: 0,
+            currentBMI = 0.0, // Tính BMI sau
+            targetBMI = 0.0, // Tính BMI mong muốn
+            date = "" // Có thể cập nhật sau
         )
-        userDao.insertUser(user) // Insert user vào database
-    }
-
-    suspend fun updateNicknameInDatabase(userDao: UserDao, newNickname: String) {
-        userDao.updateNickname(email, newNickname)
+        userRepo.saveUser(user) // Lưu vào Firebase
     }
 }
-
-
-

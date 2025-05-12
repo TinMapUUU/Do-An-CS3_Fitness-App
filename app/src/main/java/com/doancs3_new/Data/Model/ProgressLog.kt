@@ -1,12 +1,8 @@
 package com.doancs3_new.Data.Model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "progress_logs")
 data class ProgressLog(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val userId: String,
-    val date: String, // "yyyy-MM-dd"
-    val weight: Int
+    val id: String = "", // Dùng ID Firestore, hoặc rỗng nếu auto
+    val userId: String = "", // email hoặc UID
+    val date: String = "",   // Ví dụ: "2025-05-11"
+    val weight: Int = 0
 )

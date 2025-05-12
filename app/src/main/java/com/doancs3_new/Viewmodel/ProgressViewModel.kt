@@ -23,7 +23,7 @@ class ProgressViewModel @Inject constructor(
 
     fun loadLogs(userId: String) {
         viewModelScope.launch {
-            _logs.value = repo.getProgress(userId)
+            _logs.value = repo.getProgress(userId) // Sử dụng Firebase repository
         }
     }
 
@@ -32,11 +32,11 @@ class ProgressViewModel @Inject constructor(
         viewModelScope.launch {
             val dummy = ProgressLog(
                 userId = "test_user",
-                date = LocalDate.now().toString(), // "yyyy-MM-dd"
+                date = LocalDate.now().toString(),
                 weight = 60
             )
-            repo.insertProgress(dummy)
-            loadLogs("test_user") // load lại ngay sau khi insert
+            repo.insertProgress(dummy) // Sử dụng Firebase repository
+            loadLogs("test_user") // Tải lại logs sau khi thêm
         }
     }
 }

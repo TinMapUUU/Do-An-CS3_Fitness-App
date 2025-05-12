@@ -1,7 +1,7 @@
 package com.doancs3_new.all_UI.DetailProf
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,13 +20,15 @@ import androidx.navigation.NavController
 import com.doancs3_new.all_UI.RegLogFor.textFieldBorder
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SkyBlue
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.tbuonomo.viewpagerdotsindicator.compose.DotsIndicator
 import com.tbuonomo.viewpagerdotsindicator.compose.model.DotGraphic
 import com.tbuonomo.viewpagerdotsindicator.compose.type.WormIndicatorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun Input_crW_H_futW(
     label: String,
@@ -35,7 +37,8 @@ fun Input_crW_H_futW(
     pagerState: PagerState,
     navController: NavController,
     coroutineScope: CoroutineScope,
-//    onDone: () -> Unit
+    onDone: (() -> Unit)? = null
+
 ) {
     Box(
         modifier = Modifier
@@ -108,18 +111,52 @@ fun Input_crW_H_futW(
         ) {
             Button(
                 onClick = {
-//                    onDone() // ✅ Gọi callback xác nhận giá trị Input
-                    coroutineScope.launch {
-                        if (pagerState.currentPage < pagerState.pageCount - 1) {
-                            pagerState.animateScrollToPage(
-                                page = pagerState.currentPage + 1,
-                                animationSpec = tween(durationMillis = 1000)
-                            )
-                        } else {
-                            navController.navigate("Home") {
-                                popUpTo("All Detail Profile") { inclusive = true }
+                    val valueInt = value.toIntOrNull()// Chuyển đổi giá trị từ String sang Int
+
+                    if (valueInt != null) {
+                        coroutineScope.launch {
+                            // Cập nhật vào Firestore
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                            if (uid != null) {
+                                val userRef = FirebaseFirestore.getInstance().collection("users").document(uid)
+
+                                // Cập nhật giá trị chiều cao hoặc cân nặng tương ứng
+                                val updateField = when (label) {
+                                    "Cân nặng" -> mapOf("currentWeight" to valueInt)
+                                    "Chiều cao" -> mapOf("currentHeight" to valueInt)
+                                    "Cân nặng mong muốn" -> mapOf("targetWeight" to valueInt)
+                                    else -> emptyMap()
+                                }
+
+                                userRef.set(updateField, SetOptions.merge())
+                                    .addOnSuccessListener {
+                                        Log.d("Firebase", "$label updated successfully")
+
+                                    }
+                                    .addOnFailureListener {
+                                        Log.e("Firebase", "Error updating $label", it)
+                                    }
                             }
+
+                            // Chuyển trang hoặc gọi onDone
+                            if (pagerState.currentPage < pagerState.pageCount - 1) {
+                                pagerState.animateScrollToPage(
+                                    page = pagerState.currentPage + 1,
+                                    animationSpec = tween(durationMillis = 1000)
+                                )
+                            } else {
+                                onDone?.invoke() // Gọi callback khi nhập xong bước cuối
+                                navController.navigate("Home") {
+                                    popUpTo("All Detail Profile") { inclusive = true }
+                                }
+                            }
+
                         }
+
+
+                    } else {
+                        // Nếu không thể chuyển đổi sang Double, thông báo lỗi
+                        Toast.makeText(navController.context, "Vui lòng nhập giá trị hợp lệ", Toast.LENGTH_SHORT).show()
                     }
                 },
                 enabled = value.isNotBlank(),

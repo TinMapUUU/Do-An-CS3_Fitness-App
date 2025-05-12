@@ -1,10 +1,8 @@
 package com.doancs3_new
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -73,9 +71,7 @@ fun HostUI(navController: NavHostController) {
 
         //DASH BOARD
         composable("Home") {
-            Home(
-                viewModel = viewModel,
-            )
+            Home()
         }
 
     }

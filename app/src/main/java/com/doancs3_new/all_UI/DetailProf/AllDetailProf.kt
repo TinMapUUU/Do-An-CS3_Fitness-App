@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.doancs3_new.Data.Local.Dao.UserDao
 import com.doancs3_new.Viewmodel.SharedViewModel
 import com.doancs3_new.Viewmodel.UserViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +48,7 @@ fun AllDetailProfile(
                 5 -> WeightCurrent(navController, pagerState, sharedViewModel, coroutineScope)
                 6 -> HeightCurrent(navController, pagerState, sharedViewModel, coroutineScope)
                 7 -> WeightFuture(navController, pagerState, sharedViewModel, coroutineScope)
-                8 -> Aim(navController, pagerState, sharedViewModel, userViewModel)
+                8 -> Aim(navController, pagerState, sharedViewModel)
             }
         }
     }

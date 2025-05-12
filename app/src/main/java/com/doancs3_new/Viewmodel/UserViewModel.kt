@@ -1,57 +1,118 @@
 package com.doancs3_new.Viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.doancs3_new.Data.Local.Dao.UserDao
+import com.doancs3_new.Data.Logic.BMICalculator
 import com.doancs3_new.Data.Model.User
+import com.doancs3_new.Data.Repository.FirebaseRepository
+import com.doancs3_new.Data.Repository.UserRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val userDao: UserDao
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
-    // Thay vì dùng Thread.State, sử dụng State từ Jetpack Compose để quản lý dữ liệu
     private val _user = mutableStateOf<User?>(null)
-    val user: State<User?> = _user // sửa lại kiểu từ Thread.State<User?> thành State<User?>
+    val user: State<User?> = _user
 
     fun saveUser(user: User) {
         viewModelScope.launch {
-            userDao.insertUser(user)
+            userRepository.saveUser(user)
         }
     }
 
-    fun loadUser(userId: String) {
+    fun updateNickname(uid: String, nickname: String) {
+        val userRef = FirebaseFirestore.getInstance().collection("users").document(uid)
+        userRef.set(mapOf("nickname" to nickname), SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("UserViewModel", "Thêm nick name thành công")
+            }
+            .addOnFailureListener { e ->
+                Log.e("UserViewModel", "Lỗi thêm nick name", e)
+            }
+    }
+
+    fun loadUser(email: String) {
         viewModelScope.launch {
-            _user.value = userDao.getUserByEmail(userId)
+            val fetchedUser = userRepository.getUserByEmail(email)
+            _user.value = fetchedUser
         }
     }
 
-    fun updateNickname(email: String, nickname: String) {
-        viewModelScope.launch {
-            userDao.updateNickname(email, nickname)
-        }
+    fun updateProfile(
+        uid: String,
+        nickname: String,
+        currentHeight: Int,
+        currentWeight: Int,
+        targetWeight: Int
+    ) {
+        val userRef = FirebaseFirestore.getInstance().collection("users").document(uid)
+
+        val updates = mapOf(
+            "nickname" to nickname,
+            "currentHeight" to currentHeight,
+            "currentWeight" to currentWeight,
+            "targetWeight" to targetWeight
+        )
+
+        userRef.set(updates, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("UserViewModel", "cập nhật profile thành công")
+            }
+            .addOnFailureListener { e ->
+                Log.e("UserViewModel", "Lỗi cập nhật profile", e)
+            }
     }
 
-    fun saveUserFromShared(shared: SharedViewModel) {
-        viewModelScope.launch {
-            val user = User(
-                email = shared.email,
-                firstName = shared.firstName,
-                lastName = shared.lastName,
-                nickname = shared.nickname,
-                height = shared.heightCm ?: 0,
-                currentWeight = shared.currentWeight ?: 0,
-                targetWeight = shared.targetWeight ?: 0
-            )
-            userDao.insertUser(user)
-        }
+    fun calculateBMI(currentWeight: Int, heightCm: Int): Double {
+        val heightM = heightCm / 100.0
+        return (currentWeight / (heightM * heightM * 1.0))
     }
 
+    fun loadUserDataFromFirebase(uid: String) {
+        val userRef = FirebaseFirestore.getInstance().collection("users").document(uid)
+        userRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val currentWeight = document.getLong("currentWeight")?.toInt() ?: 0
+                    val heightCm = document.getLong("currentHeight")?.toInt() ?: 0
+                    val targetWeight = document.getLong("targetWeight")?.toInt() ?: 0
 
+                    val currentBMI = calculateBMI(currentWeight, heightCm)
+
+                    Log.d("UserViewModel", "BMI = $currentBMI")
+
+                    // Lưu vào _user nếu bạn cần dùng Composable để quan sát
+                    _user.value = User(
+                        email = document.getString("email") ?: "",
+                        nickname = document.getString("nickname") ?: "",
+                        currentWeight = currentWeight,
+                        currentHeight = heightCm,
+                        targetWeight = targetWeight,
+                        currentBMI = currentBMI // thêm nếu bạn có trường này trong model
+                    )
+                }
+            }
+            .addOnFailureListener {
+                Log.e("UserViewModel", "Lỗi khi lấy dữ liệu người dùng", it)
+            }
+    }
 
 }
+

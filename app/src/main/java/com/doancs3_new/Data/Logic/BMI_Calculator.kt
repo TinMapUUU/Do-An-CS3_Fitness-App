@@ -10,9 +10,9 @@ data class BMIResult(
 
 object BMICalculator {
     // Tính BMI
-    fun calculateBMI(weightKg: Int, heightCm: Int): Double {
-        val heightM = heightCm / 100.0
-        return weightKg / (heightM * heightM)
+    fun calculateBMI(currentWeight: Int, currentHeight: Int): Double {
+        val heightM = currentHeight / 100.0
+        return currentWeight / (heightM * heightM)
     }
 
     // Mô tả trạng thái BMI hiện tại
@@ -29,10 +29,10 @@ object BMICalculator {
     fun determineGoalFromBMI(
         currentWeight: Int,
         targetWeight: Int,
-        heightCm: Int
+        currentHeight: Int
     ): String {
-        val currentBMI = calculateBMI(currentWeight, heightCm)
-        val targetBMI = calculateBMI(targetWeight, heightCm)
+        val currentBMI = calculateBMI(currentWeight, currentHeight)
+        val targetBMI = calculateBMI(targetWeight, currentHeight)
 
         return when {
             targetBMI > currentBMI -> "Tăng cân"
@@ -45,11 +45,11 @@ object BMICalculator {
     fun analyzeBMI(
         currentWeight: Int,
         targetWeight: Int,
-        heightCm: Int
+        currentHeight: Int
     ): BMIResult {
-        val currentBMI = calculateBMI(currentWeight, heightCm)
-        val targetBMI = calculateBMI(targetWeight, heightCm)
-        val goal = determineGoalFromBMI(currentWeight, targetWeight, heightCm)
+        val currentBMI = calculateBMI(currentWeight, currentHeight)
+        val targetBMI = calculateBMI(targetWeight, currentHeight)
+        val goal = determineGoalFromBMI(currentWeight, targetWeight, currentHeight)
         val description = getBMIDescription(currentBMI)
 
         return BMIResult(

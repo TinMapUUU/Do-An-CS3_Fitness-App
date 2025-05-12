@@ -1,16 +1,16 @@
 package com.doancs3_new.Data.Model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "users")
 data class User(
-    @PrimaryKey val email: String, // email làm khóa chính
-    val firstName: String,
-    val lastName: String,
-    val nickname: String? = null, // Nullable để cập nhật sau
-    val height: Int,
-    val currentWeight: Int,
-    val targetWeight: Int
+    val uid: String = "",
+    val email: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    var nickname: String? = null,
+    val currentHeight: Int = 0,
+    val currentWeight: Int = 0,
+    val targetWeight: Int = 0,
+    val date: String = "", // Ví dụ "11/05"
+    val currentBMI: Double = 0.0,
+    val targetBMI: Double = 0.0
 )
 

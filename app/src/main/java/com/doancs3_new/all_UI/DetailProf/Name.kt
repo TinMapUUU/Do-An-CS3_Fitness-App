@@ -1,7 +1,5 @@
 package com.doancs3_new.all_UI.DetailProf
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,13 +19,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.doancs3_new.Data.Local.Dao.UserDao
 import com.doancs3_new.all_UI.RegLogFor.textFieldBorder
 import com.doancs3_new.Viewmodel.SharedViewModel
 import com.doancs3_new.Viewmodel.UserViewModel
 import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SkyBlue
+import com.google.firebase.auth.FirebaseAuth
 import com.tbuonomo.viewpagerdotsindicator.compose.DotsIndicator
 import com.tbuonomo.viewpagerdotsindicator.compose.model.DotGraphic
 import com.tbuonomo.viewpagerdotsindicator.compose.type.WormIndicatorType
@@ -54,7 +52,6 @@ fun rememberTextFieldColors(): TextFieldColors {
         unfocusedLabelColor = Gray1
     )
 }
-
 
 @Composable
 fun Name(
@@ -141,16 +138,17 @@ fun Name(
             Button(
                 onClick = {
                     coroutineScope.launch {
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid
+                        if (uid != null) {
+                            userViewModel.updateNickname(uid, nickname)
+                        }
+
                         if (pagerState.currentPage < pagerState.pageCount - 1) {
                             pagerState.animateScrollToPage(
                                 page = pagerState.currentPage + 1,
                                 animationSpec = tween(durationMillis = 1000)
                             )
-                            // Gọi từ viewModel thay vì dùng userDao trực tiếp
-                            userViewModel.saveUserFromShared(viewModel)
-
                         } else {
-
                             navController.navigate("Home") {
                                 popUpTo("All Detail Profile") { inclusive = true }
                             }
@@ -175,5 +173,6 @@ fun Name(
         }
     }
 }
+
 
 

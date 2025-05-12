@@ -1,8 +1,6 @@
 package com.doancs3_new.all_UI.DetailProf
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.tween
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,35 +18,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.doancs3_new.Data.Model.User
+import com.doancs3_new.Data.Logic.BMICalculator
 import com.doancs3_new.Viewmodel.SharedViewModel
-import com.doancs3_new.Viewmodel.UserViewModel
 import com.doancs3_new.ui.theme.Gray1
 import com.doancs3_new.ui.theme.LightPeriwinkleBlue
 import com.doancs3_new.ui.theme.SkyBlue
 import com.tbuonomo.viewpagerdotsindicator.compose.DotsIndicator
 import com.tbuonomo.viewpagerdotsindicator.compose.model.DotGraphic
 import com.tbuonomo.viewpagerdotsindicator.compose.type.WormIndicatorType
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.doancs3_new.Data.Model.User
+
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.M)
 @Preview(showBackground = true)
 @Composable
 fun PreviewAim() {
 
 }
 
-@RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun Aim(
-//    onNextClick: () -> Unit,
     navController: NavController = rememberNavController(),
     pagerState: PagerState = rememberPagerState(initialPage = 8) { 9 },
     sharedViewModel: SharedViewModel,
-    userViewModel: UserViewModel,
 ) {
     var selectedAim by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -58,7 +55,6 @@ fun Aim(
         val subtitle: String
     )
 
-    // Danh sách các mục tiêu
     val aimOptions = listOf(
         AimOption("Giảm cân", "Tập trung đốt mỡ, giảm cân hiệu quả"),
         AimOption("Cải thiện thành phần cơ thể", "Cải thiện hình thể hiện tại"),
@@ -104,9 +100,7 @@ fun Aim(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = aimOption.title,
                                 fontSize = 18.sp,
@@ -169,33 +163,54 @@ fun Aim(
                 .background(gradient(), shape = RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
         ) {
+            //
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        if (pagerState.currentPage < pagerState.pageCount - 1) {
-                            pagerState.animateScrollToPage(
-                                page = pagerState.currentPage + 1,
-                                animationSpec = tween(durationMillis = 1000)
-                            )
-                        } else {
-                            // Tạo đối tượng User từ dữ liệu trong SharedViewModel
-                            val user = User(
-                                email = "", // Firebase email cũng tương tự
-                                nickname = sharedViewModel.name,
-                                firstName = sharedViewModel.name.split(" ").firstOrNull() ?: "",
-                                lastName = sharedViewModel.name.split(" ").drop(1).joinToString(" "),
-                                height = sharedViewModel.heightCm!!,
-                                currentWeight = sharedViewModel.currentWeight!!,
-                                targetWeight = sharedViewModel.targetWeight!!
-                            )
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid
+                        val selectedAimNotNull = selectedAim
 
-                            // Lưu vào database
-                            userViewModel.saveUser(user)
+                        if (uid != null && selectedAimNotNull != null) {
+                            val db = FirebaseFirestore.getInstance()
+                            val userRef = db.collection("users").document(uid)
 
-                            // Điều hướng sang Home
-                            navController.navigate("Home") {
-                                popUpTo("All Detail Profile") { inclusive = true }
-                            }
+                            userRef.get()
+                                .addOnSuccessListener { document ->
+                                    val user = document.toObject(User::class.java)
+                                    if (user != null) {
+                                        val currentWeight = sharedViewModel.currentWeight ?: 0f
+                                        val height = sharedViewModel.currentHeight ?: 0f
+                                        val targetWeight = sharedViewModel.targetWeight  ?: 0f
+
+                                        val currentBMI = BMICalculator.calculateBMI(currentWeight.toInt(), height.toInt())
+                                        val targetBMI = BMICalculator.calculateBMI(targetWeight.toInt(), height.toInt())
+
+                                        val updateMap = mapOf(
+                                            "currentWeight" to currentWeight,
+                                            "targetWeight" to targetWeight,
+                                            "currentHeight" to height,
+                                            "currentBMI" to currentBMI,
+                                            "targetBMI" to targetBMI,
+                                            "aim" to selectedAimNotNull // cập nhật luôn mục tiêu nếu cần
+                                        )
+
+                                        userRef.set(updateMap, SetOptions.merge())
+                                            .addOnSuccessListener {
+                                                Log.d("Firebase", "User data updated with BMI")
+                                                navController.navigate("Home") {
+                                                    popUpTo("All Detail Profile") { inclusive = true }
+                                                }
+                                            }
+                                            .addOnFailureListener {
+                                                Log.e("Firebase", "Failed to save user data", it)
+                                            }
+                                    } else {
+                                        Log.e("Firebase", "User data not found")
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Log.e("Firebase", "Failed to fetch user data", it)
+                                }
                         }
                     }
                 },
@@ -210,6 +225,8 @@ fun Aim(
                     color = Color.White,
                 )
             }
+
         }
     }
 }
+

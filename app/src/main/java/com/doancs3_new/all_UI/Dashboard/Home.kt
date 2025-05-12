@@ -1,5 +1,6 @@
 package com.doancs3_new.all_UI.Dashboard
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,23 +28,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.doancs3_new.Data.Logic.BMICalculator
+import com.doancs3_new.Data.Model.User
 import com.doancs3_new.R
-import com.doancs3_new.Viewmodel.SharedViewModel
+import com.doancs3_new.Viewmodel.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun Home(
-    viewModel: SharedViewModel
-) {
-    val name = viewModel.name
-    val currentWeight = viewModel.currentWeight
-    val targetWeight = viewModel.targetWeight
-    val heightCm = viewModel.heightCm
+fun Home() {
+    var nickname by remember { mutableStateOf("") }
+    var currentWeight by remember { mutableStateOf<Double?>(null) }
+    var targetWeight by remember { mutableStateOf<Double?>(null) }
+    var currentHeight by remember { mutableStateOf<Double?>(null) }
+    var currentBMI by remember { mutableStateOf<Double?>(null) }
+    var targetBMI by remember { mutableStateOf<Double?>(null) }
 
-    val bmiResult = if (
-        currentWeight != null && targetWeight != null && heightCm != null
-    ) BMICalculator.analyzeBMI(currentWeight, targetWeight, heightCm) else null
+//    val userViewModel: UserViewModel = hiltViewModel()
+//    val user by userViewModel.user
+
+    // Lấy dữ liệu từ Firestore
+    LaunchedEffect(Unit) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            val docRef = FirebaseFirestore.getInstance().collection("users").document(uid)
+            docRef.get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        nickname = document.getString("nickname") ?: ""
+                        currentWeight = document.getDouble("currentWeight")
+                        targetWeight = document.getDouble("targetWeight")
+                        currentHeight = document.getDouble("currentHeight")
+                        currentBMI = document.getDouble("currentBMI")
+                        targetBMI = document.getDouble("currentHeight")
+                    }
+                }
+                .addOnFailureListener {
+                    Log.e("Firebase", "Lỗi khi tải dữ liệu người dùng", it)
+                }
+
+        }
+    }
+
 
     Scaffold(
         bottomBar = { BottomNavigationBar() }
@@ -61,10 +89,10 @@ fun Home(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    if (name.isNotBlank()) {
+                    if (nickname.isNotBlank()) {
                         Text("Chào mừng trở lại,", color = Color.Gray, fontSize = 14.sp)
                         Text(
-                            text = name,
+                            text = nickname,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -96,40 +124,7 @@ fun Home(
                     .background(Color(0xFFE7EBFF)),
                 contentAlignment = Alignment.Center
             ) {
-                if (bmiResult != null) {
-                    val color = when (bmiResult.goal.lowercase()) {
-                        "tăng cân" -> Color(0xFF4CAF50)
-                        "giảm cân" -> Color(0xFFF44336)
-                        "giữ dáng" -> Color(0xFF2196F3)
-                        else -> Color.Gray
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Mục tiêu: ${bmiResult.goal}",
-                            color = color,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "BMI hiện tại: %.2f".format(bmiResult.currentBMI),
-                            fontSize = 16.sp,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "BMI mục tiêu: %.2f".format(bmiResult.targetBMI),
-                            fontSize = 16.sp,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "Tình trạng: ${bmiResult.description}",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Gray
-                        )
-                    }
-                } else {
-//                    Text(text = "Đây là phần của line chart", fontSize = 16.sp)
+                    // Hiển thị tạm ảnh nếu dữ liệu chưa có
                     Image(
                         painter = painterResource(id = R.drawable.chart_line),
                         contentDescription = "",
@@ -139,20 +134,23 @@ fun Home(
                             .height(440.dp)
                     )
                 }
-            }
+
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text("Nội dung bài tập", fontSize = 16.sp)
 
-            //fake UI workout
             SimpleExerciseDayUI()
             SimpleExerciseDayUI()
             SimpleExerciseDayUI()
+            }
+
 
         }
-    }
 }
+
+
 
 @Composable
 fun BottomNavigationBar() {
@@ -184,18 +182,8 @@ fun BottomNavigationBar() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeSummaryScreenPreview() {
-    val viewModel: SharedViewModel = viewModel()
-    Home(viewModel = viewModel)
-}
 
-// fake UI
-// Dữ liệu tạm
-//data class Task(
-//    val id: Int,
-//    val name: String,
-//    val description: String,
-//    var isChecked: Boolean = false
-//)
+}
 
 @Composable
 fun SimpleExerciseDayUI() {

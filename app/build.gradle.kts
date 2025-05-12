@@ -66,6 +66,7 @@ dependencies {
     implementation("androidx.compose.animation:animation:1.5.1") // hoặc version bạn đang dùng
 
     implementation("com.tbuonomo:dotsindicator:5.1.0")
+    implementation(libs.firebase.database.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -97,4 +98,5 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.android.gms:play-services-auth:21.0.0") // Cho Google login
     implementation("com.facebook.android:facebook-login:16.1.3") // Cho Facebook login
+    implementation ("com.google.firebase:firebase-firestore-ktx")
 }
