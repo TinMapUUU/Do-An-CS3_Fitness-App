@@ -166,9 +166,7 @@ fun Home(
 
             Text("Nội dung bài tập", fontSize = 16.sp)
 
-            SimpleExerciseDayUI()
-            SimpleExerciseDayUI()
-            SimpleExerciseDayUI()
+
         }
     }
 }

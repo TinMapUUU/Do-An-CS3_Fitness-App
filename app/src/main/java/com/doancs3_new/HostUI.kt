@@ -6,10 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.doancs3_new.Data.Model.WorkoutSeeder
 import com.doancs3_new.Viewmodel.SharedViewModel
 import com.doancs3_new.Viewmodel.UserViewModel
 import com.doancs3_new.all_UI.Dashboard.Home
@@ -22,15 +24,24 @@ import com.doancs3_new.all_UI.RegLogFor.Register
 import com.doancs3_new.all_UI.RegLogFor.ResetPass
 import com.doancs3_new.all_UI.RegLogFor.VerifiCode
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() { // Đổi tên thành MainActivity
+    @Inject
+    lateinit var workoutSeeder: WorkoutSeeder
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
             HostUI(navController)
         }
+
+        // Khởi tạo dữ liệu bài tập mẫu khi ứng dụng khởi động lần đầu
+//        lifecycleScope.launch {
+//            workoutSeeder.Seeders()
+//        }
     }
 }
 

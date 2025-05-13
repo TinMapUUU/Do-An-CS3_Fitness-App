@@ -31,7 +31,7 @@ class ProgressLogViewModel @Inject constructor() : ViewModel() {
             .orderBy("date", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
-                    Log.e("ProgressLogViewModel", "Listen failed: ", error)
+                    Log.e("ProgressLogViewModel", "Lắng nghe fail: ", error)
                     return@addSnapshotListener
                 }
 
@@ -65,10 +65,10 @@ class ProgressLogViewModel @Inject constructor() : ViewModel() {
         db.collection("progressLogs")
             .add(log)
             .addOnSuccessListener {
-                Log.d("ProgressLogViewModel", "Progress log added successfully")
+                Log.d("ProgressLogViewModel", "Progress log thêm thành công")
             }
             .addOnFailureListener { e ->
-                Log.e("ProgressLogViewModel", "Error adding progress log", e)
+                Log.e("ProgressLogViewModel", "Lỗi thêm progress log", e)
             }
     }
 
