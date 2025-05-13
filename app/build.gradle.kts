@@ -99,4 +99,13 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.0.0") // Cho Google login
     implementation("com.facebook.android:facebook-login:16.1.3") // Cho Facebook login
     implementation ("com.google.firebase:firebase-firestore-ktx")
+
+    // Vico Chart Core & Compose cho Material 3
+    implementation("com.patrykandpatrick.vico:compose:2.1.2")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.1.2")
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+
+
 }

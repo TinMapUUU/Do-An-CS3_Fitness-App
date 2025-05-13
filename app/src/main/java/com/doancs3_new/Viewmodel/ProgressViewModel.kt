@@ -1,42 +1,87 @@
 package com.doancs3_new.Viewmodel
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.doancs3_new.Data.Model.ProgressLog
-import com.doancs3_new.Data.Respository.ProgressRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import java.time.LocalDate
+import kotlinx.coroutines.flow.asStateFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @HiltViewModel
-class ProgressViewModel @Inject constructor(
-    private val repo: ProgressRepository
-) : ViewModel() {
+class ProgressLogViewModel @Inject constructor() : ViewModel() {
 
-    private val _logs = MutableStateFlow<List<ProgressLog>>(emptyList())
-    val logs: StateFlow<List<ProgressLog>> = _logs
+    private val _progressLogs = MutableStateFlow<List<ProgressEntry>>(emptyList())
+    val progressLogs: StateFlow<List<ProgressEntry>> = _progressLogs.asStateFlow()
 
-    fun loadLogs(userId: String) {
-        viewModelScope.launch {
-            _logs.value = repo.getProgress(userId) // Sử dụng Firebase repository
-        }
+    private var listenerRegistration: ListenerRegistration? = null
+
+    fun startListeningProgressLogs(uid: String) {
+        val db = FirebaseFirestore.getInstance()
+        listenerRegistration?.remove() // tránh leak nếu gọi lại
+
+        listenerRegistration = db.collection("progressLogs")
+            .whereEqualTo("uid", uid)
+            .orderBy("date", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    Log.e("ProgressLogViewModel", "Listen failed: ", error)
+                    return@addSnapshotListener
+                }
+
+                val logs = snapshots?.documents?.mapNotNull { doc ->
+                    val weight = doc.getDouble("weight")
+                    val formattedDate = doc.getString("date")  // Lấy date dưới dạng String
+
+                    if (weight != null && formattedDate != null) {
+                        ProgressEntry(weight.toFloat(), formattedDate)
+                    } else null
+                } ?: emptyList()
+
+                _progressLogs.value = logs
+            }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun insertTestLog() {
-        viewModelScope.launch {
-            val dummy = ProgressLog(
-                userId = "test_user",
-                date = LocalDate.now().toString(),
-                weight = 60
-            )
-            repo.insertProgress(dummy) // Sử dụng Firebase repository
-            loadLogs("test_user") // Tải lại logs sau khi thêm
-        }
+    fun addProgressLog(uid: String, weight: Double) {
+        val db = FirebaseFirestore.getInstance()
+        val currentDate = Date()
+
+        // Định dạng ngày tháng theo kiểu "dd/MM - HH:mm"
+        val dateFormat = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
+        val formattedDate = dateFormat.format(currentDate)
+
+        val log = hashMapOf(
+            "uid" to uid,
+            "weight" to weight,
+            "date" to formattedDate
+        )
+
+        db.collection("progressLogs")
+            .add(log)
+            .addOnSuccessListener {
+                Log.d("ProgressLogViewModel", "Progress log added successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProgressLogViewModel", "Error adding progress log", e)
+            }
+    }
+
+
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistration?.remove()
     }
 }
+
+data class ProgressEntry(
+    val weight: Float,
+    val date: String = ""
+)
+
+

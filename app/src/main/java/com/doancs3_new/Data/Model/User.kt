@@ -9,7 +9,7 @@ data class User(
     val currentHeight: Int = 0,
     val currentWeight: Int = 0,
     val targetWeight: Int = 0,
-    val date: String = "", // Ví dụ "11/05"
+    val date: String = "", // millis từ System.currentTimeMillis()
     val currentBMI: Double = 0.0,
     val targetBMI: Double = 0.0
 )

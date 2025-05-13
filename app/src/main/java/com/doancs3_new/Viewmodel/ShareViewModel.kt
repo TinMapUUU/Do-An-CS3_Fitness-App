@@ -30,6 +30,8 @@ class SharedViewModel @Inject constructor(
     val targetWeight: Int? get() = targetWeightInput.toIntOrNull()
     val currentHeight: Int? get() = heightInput.toIntOrNull()
 
+
+
     fun updateFirstName(newFirstName: String) {
         firstName = newFirstName
     }

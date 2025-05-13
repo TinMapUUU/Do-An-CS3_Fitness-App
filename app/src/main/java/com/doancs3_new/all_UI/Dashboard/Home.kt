@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,22 +24,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.doancs3_new.Data.Logic.BMICalculator
-import com.doancs3_new.Data.Model.User
 import com.doancs3_new.R
-import com.doancs3_new.Viewmodel.UserViewModel
+import com.doancs3_new.Viewmodel.ProgressLogViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.github.mikephil.charting.data.Entry
 
 @Composable
-fun Home() {
+fun Home(
+    viewModel: ProgressLogViewModel = hiltViewModel(),
+) {
     var nickname by remember { mutableStateOf("") }
     var currentWeight by remember { mutableStateOf<Double?>(null) }
     var targetWeight by remember { mutableStateOf<Double?>(null) }
@@ -45,13 +48,12 @@ fun Home() {
     var currentBMI by remember { mutableStateOf<Double?>(null) }
     var targetBMI by remember { mutableStateOf<Double?>(null) }
 
-//    val userViewModel: UserViewModel = hiltViewModel()
-//    val user by userViewModel.user
+    // Lấy dữ liệu từ Firestore khi người dùng đã đăng nhập
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val uid = currentUser?.uid ?: ""
 
-    // Lấy dữ liệu từ Firestore
-    LaunchedEffect(Unit) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        if (uid != null) {
+    LaunchedEffect(uid) {
+        if (uid.isNotBlank()) {
             val docRef = FirebaseFirestore.getInstance().collection("users").document(uid)
             docRef.get()
                 .addOnSuccessListener { document ->
@@ -61,16 +63,31 @@ fun Home() {
                         targetWeight = document.getDouble("targetWeight")
                         currentHeight = document.getDouble("currentHeight")
                         currentBMI = document.getDouble("currentBMI")
-                        targetBMI = document.getDouble("currentHeight")
+                        targetBMI = document.getDouble("targetBMI")
                     }
                 }
                 .addOnFailureListener {
                     Log.e("Firebase", "Lỗi khi tải dữ liệu người dùng", it)
                 }
-
         }
     }
 
+    // Lấy các logs tiến trình từ ViewModel
+    val progressLogs by viewModel.progressLogs.collectAsState(initial = emptyList())
+
+    // Lắng nghe sự thay đổi dữ liệu từ Firestore
+    LaunchedEffect(uid) {
+        if (uid.isNotBlank()) {
+            viewModel.startListeningProgressLogs(uid)
+        }
+    }
+
+    // CHUYỂN DỮ LIỆU THÀNH ENTRIES (LineChartEntry)
+    val entries = progressLogs.mapIndexed { index, log ->
+        Entry(index.toFloat(), log.weight.toFloat())
+    }
+
+    val dateLabels = progressLogs.map { it.date }
 
     Scaffold(
         bottomBar = { BottomNavigationBar() }
@@ -116,6 +133,14 @@ fun Home() {
             Text("Quá trình", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(10.dp))
 
+            Button(onClick = {
+                currentUser?.uid?.let { uid ->
+                    viewModel.startListeningProgressLogs(uid)
+                }
+            }) {
+                Text("Tải biểu đồ")
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -124,18 +149,18 @@ fun Home() {
                     .background(Color(0xFFE7EBFF)),
                 contentAlignment = Alignment.Center
             ) {
-                    // Hiển thị tạm ảnh nếu dữ liệu chưa có
-                    Image(
-                        painter = painterResource(id = R.drawable.chart_line),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(440.dp)
+// Khu vực hiển thị line chart
+                if (progressLogs.isNotEmpty()) {
+                    LineChartView(
+                        entries = entries,
+                        dateLabels = dateLabels,
+                        targetWeight = targetWeight?.toFloat(), // truyền vào đây
+                        context = LocalContext.current
                     )
+                } else {
+                    Text("Chưa có dữ liệu cân nặng.")
                 }
-
-
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -144,10 +169,8 @@ fun Home() {
             SimpleExerciseDayUI()
             SimpleExerciseDayUI()
             SimpleExerciseDayUI()
-            }
-
-
         }
+    }
 }
 
 

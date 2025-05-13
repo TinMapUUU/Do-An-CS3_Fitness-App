@@ -39,8 +39,8 @@ fun HostUI(navController: NavHostController) {
     val viewModel: SharedViewModel = hiltViewModel()
     NavHost(
         navController = navController,
-        startDestination = "startScreen"
-//        startDestination = "All Detail Profile"
+//        startDestination = "startScreen"
+        startDestination = "RLF - Login"
 //        startDestination = "Home"
     ) {
         // ON BOARDING
@@ -68,7 +68,6 @@ fun HostUI(navController: NavHostController) {
                 userViewModel = userViewModel // Truyền đúng viewModel
             )
         }
-
         //DASH BOARD
         composable("Home") {
             Home()

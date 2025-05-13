@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.doancs3_new.Data.Logic.BMICalculator
@@ -32,8 +33,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.doancs3_new.Data.Model.User
+import com.doancs3_new.Viewmodel.ProgressLogViewModel
+import com.doancs3_new.Viewmodel.UserViewModel
+
 
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Preview(showBackground = true)
 @Composable
@@ -46,6 +53,7 @@ fun Aim(
     navController: NavController = rememberNavController(),
     pagerState: PagerState = rememberPagerState(initialPage = 8) { 9 },
     sharedViewModel: SharedViewModel,
+    progressLogViewModel: ProgressLogViewModel = hiltViewModel()
 ) {
     var selectedAim by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -185,6 +193,9 @@ fun Aim(
                                         val currentBMI = BMICalculator.calculateBMI(currentWeight.toInt(), height.toInt())
                                         val targetBMI = BMICalculator.calculateBMI(targetWeight.toInt(), height.toInt())
 
+                                        val formatter = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
+                                        val formattedDate = formatter.format(Date())
+
                                         val updateMap = mapOf(
                                             "currentWeight" to currentWeight,
                                             "targetWeight" to targetWeight,
@@ -193,6 +204,24 @@ fun Aim(
                                             "targetBMI" to targetBMI,
                                             "aim" to selectedAimNotNull // cập nhật luôn mục tiêu nếu cần
                                         )
+
+                                        val progressLog = hashMapOf(
+                                            "weight" to currentWeight,
+                                            "date" to formattedDate, // hoặc sử dụng Timestamp.now()
+                                            "uid" to uid
+                                        )
+
+                                        progressLogViewModel.addProgressLog(uid, currentWeight.toDouble())
+
+                                        db.collection("progressLogs")
+                                            .add(progressLog)
+                                            .addOnSuccessListener {
+                                                Log.d("Firebase", "Initial progress log created")
+                                            }
+                                            .addOnFailureListener {
+                                                Log.e("Firebase", "Failed to create initial progress log", it)
+                                            }
+
 
                                         userRef.set(updateMap, SetOptions.merge())
                                             .addOnSuccessListener {

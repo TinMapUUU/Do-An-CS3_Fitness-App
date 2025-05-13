@@ -1,5 +1,7 @@
 [versions]
 agp = "8.7.3"
+composeM3 = "1.13.0"
+core = "2.1.2"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -11,9 +13,15 @@ composeBom = "2024.04.01"
 hilt = "2.50"  # Thêm phiên bản Hilt
 room = "2.6.1"
 firebaseDatabaseKtx = "21.0.0"
+vico = "2.1.2"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "composeM3" }
+compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "composeM3" }
+core = { module = "com.patrykandpatrick.vico:core", version.ref = "composeM3" }
+core-v212 = { module = "com.patrykandpatrick.vico:core", version.ref = "core" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -34,6 +42,11 @@ room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+vico-multiplatform-m3 = { group = "com.patrykandpatrick.vico", name = "multiplatform-m3", version.ref = "vico" }
+vico-views = { group = "com.patrykandpatrick.vico", name = "views", version.ref = "vico" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
