@@ -53,9 +53,8 @@ fun LineChartView(
                 // Line 2: target weight (ngang)
                 targetWeight?.let { weight ->
                     val targetEntries = entries.map { entry ->
-                        Entry(entry.x, weight) // giữ x như log, y là target
+                        Entry(entry.x, weight) // giữ x như log
                     }
-
                     val targetSet = LineDataSet(targetEntries, "Mục tiêu").apply {
                         color = AndroidColor.parseColor("#FF5722")
                         valueTextColor = AndroidColor.parseColor("#FF5722")
@@ -66,7 +65,6 @@ fun LineChartView(
                     }
                     dataSets.add(targetSet)
                 }
-
                 data = LineData(dataSets)
                 invalidate()
             }

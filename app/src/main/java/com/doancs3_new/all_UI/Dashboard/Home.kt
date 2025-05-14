@@ -1,20 +1,16 @@
 package com.doancs3_new.all_UI.Dashboard
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,8 +27,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.doancs3_new.Data.Logic.ChangeCheckpointLine
+import com.doancs3_new.Data.Model.Workout
 import com.doancs3_new.R
 import com.doancs3_new.Viewmodel.ProgressLogViewModel
+import com.doancs3_new.Viewmodel.SharedViewModel
+import com.doancs3_new.Viewmodel.WorkoutsViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.github.mikephil.charting.data.Entry
@@ -40,6 +40,8 @@ import com.github.mikephil.charting.data.Entry
 @Composable
 fun Home(
     viewModel: ProgressLogViewModel = hiltViewModel(),
+    sharedViewModel: SharedViewModel,
+    workoutViewModel: WorkoutsViewModel = hiltViewModel()
 ) {
     var nickname by remember { mutableStateOf("") }
     var currentWeight by remember { mutableStateOf<Double?>(null) }
@@ -48,9 +50,13 @@ fun Home(
     var currentBMI by remember { mutableStateOf<Double?>(null) }
     var targetBMI by remember { mutableStateOf<Double?>(null) }
 
+    val selectedAim by sharedViewModel.selectedAim.collectAsState()
     // Lấy dữ liệu từ Firestore khi người dùng đã đăng nhập
     val currentUser = FirebaseAuth.getInstance().currentUser
     val uid = currentUser?.uid ?: ""
+
+//    // Lấy aim từ Firestore
+//    val fetchedAim by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uid) {
         if (uid.isNotBlank()) {
@@ -70,6 +76,16 @@ fun Home(
                     Log.e("Firebase", "Lỗi khi tải dữ liệu người dùng", it)
                 }
         }
+
+        if (uid.isNotBlank() && selectedAim == null) {
+            fetchUserAim { fetchedAim ->
+                fetchedAim?.let {
+                    sharedViewModel.setSelectedAim(it) // Cập nhật vào ViewModel
+                    Log.d("Home", "Aim được khôi phục từ Firestore: $it")
+                }
+            }
+        }
+
     }
 
     // Lấy các logs tiến trình từ ViewModel
@@ -82,12 +98,28 @@ fun Home(
         }
     }
 
+    // Cập nhật progress logs
+    LaunchedEffect(progressLogs) {
+        if (uid.isNotBlank()) {
+            val docRef = FirebaseFirestore.getInstance().collection("users").document(uid)
+            docRef.get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        currentWeight = document.getDouble("currentWeight")
+                        targetWeight = document.getDouble("targetWeight")
+                    }
+                }
+        }
+    }
+
     // CHUYỂN DỮ LIỆU THÀNH ENTRIES (LineChartEntry)
     val entries = progressLogs.mapIndexed { index, log ->
         Entry(index.toFloat(), log.weight.toFloat())
     }
 
     val dateLabels = progressLogs.map { it.date }
+
+    val checkpointUpdater = remember { ChangeCheckpointLine(FirebaseFirestore.getInstance()) }
 
     Scaffold(
         bottomBar = { BottomNavigationBar() }
@@ -97,13 +129,11 @@ fun Home(
                 .padding(innerPadding)
                 .padding(20.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
         ) {
             // HEADER
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
                     if (nickname.isNotBlank()) {
@@ -133,14 +163,6 @@ fun Home(
             Text("Quá trình", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(10.dp))
 
-            Button(onClick = {
-                currentUser?.uid?.let { uid ->
-                    viewModel.startListeningProgressLogs(uid)
-                }
-            }) {
-                Text("Tải biểu đồ")
-            }
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -149,7 +171,7 @@ fun Home(
                     .background(Color(0xFFE7EBFF)),
                 contentAlignment = Alignment.Center
             ) {
-// Khu vực hiển thị line chart
+                // Khu vực hiển thị line chart
                 if (progressLogs.isNotEmpty()) {
                     LineChartView(
                         entries = entries,
@@ -164,13 +186,85 @@ fun Home(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Lấy bài tập cho mục tiêu đã chọn
+            LaunchedEffect(selectedAim) {
+                selectedAim?.let {
+                    workoutViewModel.loadWorkouts(it)
+                }
+            }
+
+            // Quan sát và hiển thị các bài tập
+            val workouts by workoutViewModel.workouts.collectAsState()
+            val plan = remember(selectedAim, workouts) {
+                selectedAim?.let { generateWorkoutPlan(it, workouts) } ?: emptyList()
+            }
+
+            // Khởi tạo ma trận checked 24x3
+            val checkedMatrix = remember { mutableStateListOf<MutableList<Boolean>>() }
+            if (checkedMatrix.isEmpty()) {
+                repeat(24) { checkedMatrix.add(MutableList(3) { false }) }
+            }
+
             Text("Nội dung bài tập", fontSize = 16.sp)
 
+            // Hiển thị danh sách bài tập
+            LazyColumn {
+                items(24) { dayIndex ->
+                    WorkoutView(
+                        dayNumber = dayIndex + 1,
+                        workouts = plan.getOrNull(dayIndex) ?: emptyList(),
+                        checkedStates = checkedMatrix[dayIndex],
+                        onCheckChanged = { index, isChecked ->
+                            checkedMatrix[dayIndex][index] = isChecked
+                            val checkpointIndex = (dayIndex + 1) / 3
+                            val start = checkpointIndex * 3
+                            val allChecked = checkedMatrix
+                                .subList(start, start + 3)
+                                .all { it.all { it } }
+                            if (allChecked) {
+                                checkpointUpdater.updateCheckpointProgress(uid, checkpointIndex)
+                            }
+                        },
+                        onAllChecked = {
+                            checkpointUpdater.updateCheckpointProgress(uid, checkpointIndex = dayIndex)
+                        }
+                    )
+                }
+            }
 
         }
     }
 }
 
+fun fetchUserAim(onResult: (String?) -> Unit) {
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
+    val db = FirebaseFirestore.getInstance()
+
+    db.collection("users").document(uid!!)
+        .get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val aim = document.getString("aim")
+                onResult(aim)
+            } else {
+                onResult(null)
+            }
+        }
+        .addOnFailureListener {
+            onResult(null)
+        }
+}
+
+fun generateWorkoutPlan(aim: String, allWorkouts: List<Workout>): List<List<Workout>> {
+    // Lọc bài tập theo mục tiêu (giảm cân / tăng cân / giữ dáng)
+    val filtered = allWorkouts.filter { it.type.equals(aim, ignoreCase = true) }
+
+    // Lấy đúng 3 bài tập đầu tiên phù hợp
+    val dailyWorkouts = filtered.take(3)
+
+    // Lặp lại 24 ngày, mỗi ngày dùng cùng 3 bài tập này
+    return List(24) { dailyWorkouts }
+}
 
 
 @Composable
@@ -200,85 +294,6 @@ fun BottomNavigationBar() {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeSummaryScreenPreview() {
 
-}
-
-@Composable
-fun SimpleExerciseDayUI() {
-    val taskList = remember {
-        mutableStateListOf(
-            mutableStateOf(Triple("Hít đất", "Thực hiện 3 hiệp, mỗi hiệp 15 cái. Nghỉ 1 phút.", false)),
-            mutableStateOf(Triple("Gập bụng", "Gập 4 hiệp, mỗi hiệp 20 cái. Giữ nhịp thở đều.", false)),
-            mutableStateOf(Triple("Plank", "Giữ plank 1 phút, lặp lại 3 lần.", false))
-        )
-    }
-
-    var expandedIndex by remember { mutableStateOf(-1) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp)
-            .background(Color(0xFFE8F5E9), RoundedCornerShape(12.dp))
-            .padding(16.dp)
-    ) {
-        Text("Ngày 1", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        taskList.forEachIndexed { index, taskState ->
-            val (title, description, checked) = taskState.value
-            val isExpanded = expandedIndex == index
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painterResource(R.drawable.gym_svg),
-                    contentDescription = "",
-                    modifier = Modifier.size(30.dp)
-                )
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 10.dp)
-                ) {
-                    Text(title, fontWeight = FontWeight.SemiBold)
-
-                    val desc = if (isExpanded || description.length <= 40)
-                        description
-                    else
-                        description.take(40) + "..."
-
-                    Text(
-                        text = desc,
-                        fontSize = 13.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.clickable {
-                            expandedIndex = if (isExpanded) -1 else index
-                        }
-                    )
-                }
-
-                Checkbox(
-                    checked = checked,
-                    onCheckedChange = {
-                        taskList[index].value = taskState.value.copy(third = it)
-                    }
-                )
-            }
-
-            Divider()
-        }
-    }
-    Spacer(modifier = Modifier.height(12.dp))
-}
 
 

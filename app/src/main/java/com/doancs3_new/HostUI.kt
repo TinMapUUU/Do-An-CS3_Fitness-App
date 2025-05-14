@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,7 +23,6 @@ import com.doancs3_new.all_UI.RegLogFor.Register
 import com.doancs3_new.all_UI.RegLogFor.ResetPass
 import com.doancs3_new.all_UI.RegLogFor.VerifiCode
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -37,21 +35,16 @@ class MainActivity : ComponentActivity() { // Đổi tên thành MainActivity
             val navController = rememberNavController()
             HostUI(navController)
         }
-
-        // Khởi tạo dữ liệu bài tập mẫu khi ứng dụng khởi động lần đầu
-//        lifecycleScope.launch {
-//            workoutSeeder.Seeders()
-//        }
     }
 }
 
 @Composable
 fun HostUI(navController: NavHostController) {
-    val viewModel: SharedViewModel = hiltViewModel()
+    val sharedViewModel: SharedViewModel = hiltViewModel()
     NavHost(
         navController = navController,
-//        startDestination = "startScreen"
-        startDestination = "RLF - Login"
+        startDestination = "startScreen"
+//        startDestination = "RLF - Login"
 //        startDestination = "Home"
     ) {
         // ON BOARDING
@@ -67,7 +60,6 @@ fun HostUI(navController: NavHostController) {
 
         //DETAIL PROFILE
         composable("All Detail Profile") {
-            val sharedViewModel: SharedViewModel = hiltViewModel()
             val coroutineScope = rememberCoroutineScope()
             // Đảm bảo viewModel của bạn được inject đúng cách
             val userViewModel: UserViewModel = hiltViewModel()
@@ -81,8 +73,7 @@ fun HostUI(navController: NavHostController) {
         }
         //DASH BOARD
         composable("Home") {
-            Home()
+            Home(sharedViewModel = sharedViewModel)
         }
-
     }
 }

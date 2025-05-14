@@ -34,9 +34,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.doancs3_new.Data.Model.User
 import com.doancs3_new.Viewmodel.ProgressLogViewModel
-import com.doancs3_new.Viewmodel.UserViewModel
-
-
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -65,9 +62,8 @@ fun Aim(
 
     val aimOptions = listOf(
         AimOption("Giảm cân", "Tập trung đốt mỡ, giảm cân hiệu quả"),
-        AimOption("Cải thiện thành phần cơ thể", "Cải thiện hình thể hiện tại"),
-        AimOption("Tăng cơ bắp", "Xây dựng cơ bắp và tăng cân"),
-        AimOption("Giữ vóc dáng", "Duy trì sức khỏe và hình thể hiện tại")
+        AimOption("Giữ dáng", "Cải thiện hình thể hiện tại"),
+        AimOption("Tăng cân", "Xây dựng cơ bắp và tăng cân"),
     )
 
     Box(
@@ -176,11 +172,13 @@ fun Aim(
                 onClick = {
                     coroutineScope.launch {
                         val uid = FirebaseAuth.getInstance().currentUser?.uid
-                        val selectedAimNotNull = selectedAim
+                        val aim = selectedAim
 
-                        if (uid != null && selectedAimNotNull != null) {
+                        if (uid != null && aim != null) {
                             val db = FirebaseFirestore.getInstance()
                             val userRef = db.collection("users").document(uid)
+                            // Lưu mục tiêu đã chọn vào SharedViewModel
+                            sharedViewModel.setSelectedAim(aim)
 
                             userRef.get()
                                 .addOnSuccessListener { document ->
@@ -202,8 +200,9 @@ fun Aim(
                                             "currentHeight" to height,
                                             "currentBMI" to currentBMI,
                                             "targetBMI" to targetBMI,
-                                            "aim" to selectedAimNotNull // cập nhật luôn mục tiêu nếu cần
                                         )
+
+                                        userRef.set(mapOf("aim" to selectedAim), SetOptions.merge())
 
                                         val progressLog = hashMapOf(
                                             "weight" to currentWeight,
@@ -216,25 +215,24 @@ fun Aim(
                                         db.collection("progressLogs")
                                             .add(progressLog)
                                             .addOnSuccessListener {
-                                                Log.d("Firebase", "Initial progress log created")
+                                                Log.d("Firebase", "progress log đã được tạo")
                                             }
                                             .addOnFailureListener {
-                                                Log.e("Firebase", "Failed to create initial progress log", it)
+                                                Log.e("Firebase", "Lỗi tạo progress log", it)
                                             }
-
 
                                         userRef.set(updateMap, SetOptions.merge())
                                             .addOnSuccessListener {
-                                                Log.d("Firebase", "User data updated with BMI")
+                                                Log.d("Firebase", "BMI của người dùng đã được cập nhật")
                                                 navController.navigate("Home") {
                                                     popUpTo("All Detail Profile") { inclusive = true }
                                                 }
                                             }
                                             .addOnFailureListener {
-                                                Log.e("Firebase", "Failed to save user data", it)
+                                                Log.e("Firebase", "Lỗi lưu data người dùng", it)
                                             }
                                     } else {
-                                        Log.e("Firebase", "User data not found")
+                                        Log.e("Firebase", "Không thấy data nguòi dùng")
                                     }
                                 }
                                 .addOnFailureListener {

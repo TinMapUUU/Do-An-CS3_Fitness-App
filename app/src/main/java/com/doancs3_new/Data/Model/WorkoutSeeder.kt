@@ -78,9 +78,9 @@ class WorkoutSeeder @Inject constructor(
                 videoUrl = "https://www.youtube.com/watch?v=9FGilxCbdz8"
             ),
         )
-
-        // Thêm vào Firestore
-        workoutRepository.insertWorkout(workoutList)
+//
+//        // Thêm vào Firestore
+//        workoutRepository.insertWorkout(workoutList)
     }
 }
 

@@ -2,6 +2,7 @@ package com.doancs3_new.Viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.doancs3_new.Data.Model.Workout
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -19,6 +20,10 @@ class ProgressLogViewModel @Inject constructor() : ViewModel() {
 
     private val _progressLogs = MutableStateFlow<List<ProgressEntry>>(emptyList())
     val progressLogs: StateFlow<List<ProgressEntry>> = _progressLogs.asStateFlow()
+
+    private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
+    val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
+
 
     private var listenerRegistration: ListenerRegistration? = null
 
@@ -48,14 +53,14 @@ class ProgressLogViewModel @Inject constructor() : ViewModel() {
             }
     }
 
+    private val db = FirebaseFirestore.getInstance()
+    private val currentDate = Date()
+
+    // Định dạng ngày tháng theo kiểu "dd/MM - HH:mm"
+    private val dateFormat = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
+    val formattedDate: String = dateFormat.format(currentDate)
+
     fun addProgressLog(uid: String, weight: Double) {
-        val db = FirebaseFirestore.getInstance()
-        val currentDate = Date()
-
-        // Định dạng ngày tháng theo kiểu "dd/MM - HH:mm"
-        val dateFormat = SimpleDateFormat("dd/MM - HH:mm", Locale.getDefault())
-        val formattedDate = dateFormat.format(currentDate)
-
         val log = hashMapOf(
             "uid" to uid,
             "weight" to weight,

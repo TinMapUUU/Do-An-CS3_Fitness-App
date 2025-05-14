@@ -8,6 +8,9 @@ import com.doancs3_new.Data.Model.User
 import com.doancs3_new.Data.Repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import com.doancs3_new.Data.Model.Workout
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @HiltViewModel
 class SharedViewModel @Inject constructor(
@@ -30,6 +33,29 @@ class SharedViewModel @Inject constructor(
     val targetWeight: Int? get() = targetWeightInput.toIntOrNull()
     val currentHeight: Int? get() = heightInput.toIntOrNull()
 
+    private val _selectedAim = MutableStateFlow<String?>(null)
+    val selectedAim: StateFlow<String?> = _selectedAim
+
+    fun setSelectedAim(aim: String) {
+        _selectedAim.value = aim
+    }
+
+    // Mục tiêu người dùng: giảm cân / tăng cân / giữ dáng
+    var userAim by mutableStateOf("")
+        private set
+
+    fun updateUserAim(aim: String) {
+        userAim = aim
+    }
+
+    // Danh sách bài tập
+    var workouts by mutableStateOf<List<Workout>>(emptyList())
+        private set
+
+
+    fun updateWorkouts(newList: List<Workout>) {
+        workouts = newList
+    }
 
 
     fun updateFirstName(newFirstName: String) {
