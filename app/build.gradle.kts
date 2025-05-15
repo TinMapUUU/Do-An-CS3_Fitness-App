@@ -67,6 +67,7 @@ dependencies {
 
     implementation("com.tbuonomo:dotsindicator:5.1.0")
     implementation(libs.firebase.database.ktx)
+    implementation(libs.androidx.navigation.runtime.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

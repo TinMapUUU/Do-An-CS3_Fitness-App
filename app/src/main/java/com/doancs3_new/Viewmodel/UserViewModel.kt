@@ -22,11 +22,11 @@ class UserViewModel @Inject constructor(
     private val _user = mutableStateOf<User?>(null)
     val user: State<User?> = _user
 
-    fun saveUser(user: User) {
-        viewModelScope.launch {
-            userRepository.saveUser(user)
-        }
-    }
+//    fun saveUser(user: User) {
+//        viewModelScope.launch {
+//            userRepository.saveUser(user)
+//        }
+//    }
 
     fun updateNickname(uid: String, nickname: String) {
         val userRef = FirebaseFirestore.getInstance().collection("users").document(uid)

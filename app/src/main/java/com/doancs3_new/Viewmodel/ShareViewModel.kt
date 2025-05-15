@@ -82,20 +82,20 @@ class SharedViewModel @Inject constructor(
         heightInput = input
     }
 
-    // Lưu thông tin vào Firebase
-    suspend fun saveUserProfile() {
-        val user = User(
-            email = email,
-            firstName = firstName,
-            lastName = lastName,
-            nickname = nickname,
-            currentWeight = currentWeight ?: 0,
-            currentHeight = currentHeight ?: 0,
-            targetWeight = targetWeight ?: 0,
-            currentBMI = 0.0, // Tính BMI sau
-            targetBMI = 0.0, // Tính BMI mong muốn
-            date = "" // Có thể cập nhật sau
-        )
-        userRepo.saveUser(user) // Lưu vào Firebase
-    }
+//    // Lưu thông tin vào Firebase
+//    suspend fun saveUserProfile() {
+//        val user = User(
+//            email = email,
+//            firstName = firstName,
+//            lastName = lastName,
+//            nickname = nickname,
+//            currentWeight = currentWeight ?: 0,
+//            currentHeight = currentHeight ?: 0,
+//            targetWeight = targetWeight ?: 0,
+//            currentBMI = 0.0, // Tính BMI sau
+//            targetBMI = 0.0, // Tính BMI mong muốn
+//            date = "" // Có thể cập nhật sau
+//        )
+//        userRepo.saveUser(user) // Lưu vào Firebase
+//    }
 }

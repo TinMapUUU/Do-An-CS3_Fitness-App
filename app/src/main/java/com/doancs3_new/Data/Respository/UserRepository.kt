@@ -10,9 +10,9 @@ class UserRepository @Inject constructor() {
     private val usersCollection = firestore.collection("users")
 
     // Thêm hoặc cập nhật người dùng (sử dụng email làm ID nếu muốn)
-    suspend fun saveUser(user: User) {
-        usersCollection.document(user.email).set(user).await()
-    }
+//    suspend fun saveUser(user: User) {
+//        usersCollection.document(user.email).set(user).await()
+//    }
 
     // Lấy người dùng theo email
     suspend fun getUserByEmail(email: String): User? {

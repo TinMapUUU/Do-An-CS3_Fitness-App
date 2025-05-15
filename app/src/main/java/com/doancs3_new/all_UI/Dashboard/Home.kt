@@ -5,8 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.BottomNavigation
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,19 +26,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.doancs3_new.Data.Logic.ChangeCheckpointLine
 import com.doancs3_new.Data.Model.Workout
-import com.doancs3_new.R
 import com.doancs3_new.Viewmodel.ProgressLogViewModel
 import com.doancs3_new.Viewmodel.SharedViewModel
 import com.doancs3_new.Viewmodel.WorkoutsViewModel
+import com.doancs3_new.ui.theme.SteelBlue
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.github.mikephil.charting.data.Entry
@@ -41,7 +48,9 @@ import com.github.mikephil.charting.data.Entry
 fun Home(
     viewModel: ProgressLogViewModel = hiltViewModel(),
     sharedViewModel: SharedViewModel,
-    workoutViewModel: WorkoutsViewModel = hiltViewModel()
+    workoutViewModel: WorkoutsViewModel = hiltViewModel(),
+    navController: NavHostController,
+    modifier: Modifier = Modifier // ✅ thêm dòng này
 ) {
     var nickname by remember { mutableStateOf("") }
     var currentWeight by remember { mutableStateOf<Double?>(null) }
@@ -122,7 +131,7 @@ fun Home(
     val checkpointUpdater = remember { ChangeCheckpointLine(FirebaseFirestore.getInstance()) }
 
     Scaffold(
-        bottomBar = { BottomNavigationBar() }
+        bottomBar = { }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -231,7 +240,6 @@ fun Home(
                     )
                 }
             }
-
         }
     }
 }
@@ -240,21 +248,27 @@ fun fetchUserAim(onResult: (String?) -> Unit) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseFirestore.getInstance()
 
-    db.collection("users").document(uid!!)
-        .get()
-        .addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                val aim = document.getString("aim")
-                onResult(aim)
-            } else {
+    if (uid != null) {
+        db.collection("users").document(uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val aim = document.getString("aim")
+                    onResult(aim)
+                } else {
+                    Log.w("fetchUserAim", "Tài liệu không tồn tại.")
+                    onResult(null)
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("fetchUserAim", "Lỗi khi lấy aim", exception)
                 onResult(null)
             }
-        }
-        .addOnFailureListener {
-            onResult(null)
-        }
+    } else {
+        Log.e("fetchUserAim", "UID null.")
+        onResult(null)
+    }
 }
-
 fun generateWorkoutPlan(aim: String, allWorkouts: List<Workout>): List<List<Workout>> {
     // Lọc bài tập theo mục tiêu (giảm cân / tăng cân / giữ dáng)
     val filtered = allWorkouts.filter { it.type.equals(aim, ignoreCase = true) }
@@ -266,33 +280,44 @@ fun generateWorkoutPlan(aim: String, allWorkouts: List<Workout>): List<List<Work
     return List(24) { dailyWorkouts }
 }
 
-
 @Composable
-fun BottomNavigationBar() {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
+fun BottomNavigationBar(
+    navController: NavHostController,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val items = listOf(
+        BottomNavItem("Trang chủ", Icons.Default.Home, "Home"),
+        BottomNavItem("Hồ Sơ", Icons.Default.Person, "Profile")
+    )
+
+    BottomNavigation(
+        backgroundColor = backgroundColor,
+        modifier = modifier
     ) {
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Trang chủ") },
-            label = { Text("Home") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Lịch") },
-            label = { Text("Lịch ") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(painterResource(R.drawable.house_svg), contentDescription = "Hồ sơ") },
-            label = { Text("Hồ sơ") }
-        )
+        val currentBackStack by navController.currentBackStackEntryAsState()
+        val currentDestination = currentBackStack?.destination?.route
+
+        items.forEach { item ->
+            BottomNavigationItem(
+                icon = { Icon(item.icon, contentDescription = item.title) },
+                label = { Text(item.title) },
+                selected = currentDestination == item.route,
+                onClick = {
+                    if (currentDestination != item.route) {
+                        navController.navigate(item.route) {
+                            popUpTo("Home") { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
+        }
     }
 }
+data class BottomNavItem(val title: String, val icon: ImageVector, val route: String)
+
+
 
 
 

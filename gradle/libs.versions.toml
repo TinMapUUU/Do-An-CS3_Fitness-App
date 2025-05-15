@@ -14,6 +14,7 @@ hilt = "2.50"  # Thêm phiên bản Hilt
 room = "2.6.1"
 firebaseDatabaseKtx = "21.0.0"
 vico = "2.1.2"
+navigationRuntimeAndroid = "2.9.0"
 
 
 [libraries]
@@ -47,6 +48,7 @@ vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 vico-multiplatform-m3 = { group = "com.patrykandpatrick.vico", name = "multiplatform-m3", version.ref = "vico" }
 vico-views = { group = "com.patrykandpatrick.vico", name = "views", version.ref = "vico" }
+androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

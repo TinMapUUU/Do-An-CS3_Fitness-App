@@ -77,6 +77,7 @@ fun rememberTextFieldColors(): TextFieldColors {
         unfocusedLabelColor = Gray1
     )
 }
+
 // Hàm design Border TextField
 @Composable
 fun textFieldBorder(): Modifier {
