@@ -5,5 +5,6 @@ data class Workout(
     val type: String = " ",
     val title: String = " ",
     val description: String = " ",
-    val videoUrl: String = " "
+    val videoUrl: String = " ",
+    val subDescr: String = " "
 )

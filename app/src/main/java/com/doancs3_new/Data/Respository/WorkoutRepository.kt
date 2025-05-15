@@ -1,7 +1,9 @@
 package com.doancs3_new.Data.Respository
 
 import com.doancs3_new.Data.Model.Workout
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -24,5 +26,11 @@ class WorkoutRepository @Inject constructor() {
         println("✅ Tổng số workout lấy ra: ${workoutList.size}")
         return workoutList
     }
+
+    suspend fun insertOrUpdateWorkout(workout: Workout) {
+        val docRef = Firebase.firestore.collection("workouts").document(workout.id)
+        docRef.set(workout) // nếu trùng id thì sẽ update, chưa có thì thêm mới
+    }
+
 
 }

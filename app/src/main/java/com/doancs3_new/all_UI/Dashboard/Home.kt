@@ -214,8 +214,11 @@ fun Home(
                 repeat(24) { checkedMatrix.add(MutableList(3) { false }) }
             }
 
-            Text("Nội dung bài tập", fontSize = 16.sp)
-
+            Text("Kế hoạch bài tập",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(10.dp))
             // Hiển thị danh sách bài tập
             LazyColumn {
                 items(24) { dayIndex ->
@@ -243,11 +246,10 @@ fun Home(
         }
     }
 }
-
+//Hàm lấy Aim - user để render bài tập
 fun fetchUserAim(onResult: (String?) -> Unit) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseFirestore.getInstance()
-
     if (uid != null) {
         db.collection("users").document(uid)
             .get()
@@ -269,15 +271,19 @@ fun fetchUserAim(onResult: (String?) -> Unit) {
         onResult(null)
     }
 }
-fun generateWorkoutPlan(aim: String, allWorkouts: List<Workout>): List<List<Workout>> {
-    // Lọc bài tập theo mục tiêu (giảm cân / tăng cân / giữ dáng)
+//Hàm render bài tập
+fun generateWorkoutPlan(aim: String, allWorkouts: List<Workout>, totalDays: Int = 24): List<List<Workout>> {
     val filtered = allWorkouts.filter { it.type.equals(aim, ignoreCase = true) }
-
-    // Lấy đúng 3 bài tập đầu tiên phù hợp
-    val dailyWorkouts = filtered.take(3)
-
-    // Lặp lại 24 ngày, mỗi ngày dùng cùng 3 bài tập này
-    return List(24) { dailyWorkouts }
+    if (filtered.size < 3) return emptyList()
+    // Tạo danh sách các bộ 3 bài tập ngẫu nhiên (ví dụ chỉ tạo 10 bộ)
+    val generatedWorkouts = List(4) { dayIndex ->
+        val random = java.util.Random((dayIndex + 1).toLong())
+        filtered.shuffled(random).take(3)
+    }
+    // Lặp lại danh sách generatedWorkouts để đủ totalDays
+    return List(totalDays) { dayIndex ->
+        generatedWorkouts[dayIndex % generatedWorkouts.size]
+    }
 }
 
 @Composable
@@ -287,8 +293,9 @@ fun BottomNavigationBar(
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        BottomNavItem("Trang chủ", Icons.Default.Home, "Home"),
-        BottomNavItem("Hồ Sơ", Icons.Default.Person, "Profile")
+        BottomNavItem("Trang Chủ", Icons.Default.Home, "Home"),
+        BottomNavItem("Hồ Sơ", Icons.Default.Person, "Profile"),
+        BottomNavItem("Bài Tập", Icons.Default.Person, "ListWorkout"),
     )
 
     BottomNavigation(
