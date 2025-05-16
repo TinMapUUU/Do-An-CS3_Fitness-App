@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,6 +98,7 @@ fun Register(
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var acceptTerms by remember { mutableStateOf(false) }
 
 
@@ -174,19 +177,36 @@ fun Register(
         TextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Mật khẩu") },
+            label = { Text("Password") },
             placeholder = { Text("Nhập Mật Khẩu của bạn") },
             colors = rememberTextFieldColors(),
             leadingIcon = {
                 Icon(
-                    Icons.Default.Lock,
+                    painter = painterResource(R.drawable.ic_lock),
                     contentDescription = null,
                     tint = Gray1
                 )
             },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = textFieldBorder() // Chỉnh Border Text Field
+            trailingIcon = {
+                val image = if (passwordVisible)
+                    painterResource(id = R.drawable.pass_appear_svg)
+                else
+                    painterResource(id = R.drawable.pass_disappear_svg)
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        painter = image,
+                        contentDescription = if (passwordVisible) "Ẩn mật khẩu" else "Hiện mật khẩu"
+                    )
+                }
+            },
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(2.dp, Gray1, RoundedCornerShape(15.dp))
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
 // Checkbox Accept Terms

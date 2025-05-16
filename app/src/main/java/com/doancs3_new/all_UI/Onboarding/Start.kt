@@ -85,7 +85,7 @@ fun StartScreen( navController: NavController) {
                 .height(60.dp)
         ) {
             Text(
-                text = "Get Started",
+                text = "Bắt đầu !",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 style = TextStyle(brush = gradientColor)

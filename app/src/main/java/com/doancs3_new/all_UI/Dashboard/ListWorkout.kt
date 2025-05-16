@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.doancs3_new.Data.Model.Workout
 import com.doancs3_new.Viewmodel.ListWorkoutViewModel
+import com.doancs3_new.ui.theme.Gray1
+import com.doancs3_new.ui.theme.LightPeriwinkleBlue
+import com.doancs3_new.ui.theme.Pink40
 
 @Composable
 fun ListWorkout(
@@ -51,6 +54,7 @@ fun ListWorkout(
                 ExpandableWorkoutCard(workout)
             }
         }
+        Spacer(modifier = Modifier.height(15.dp))
     }
 }
 
@@ -66,7 +70,7 @@ fun ExpandableWorkoutCard(workout: WorkoutItem) {
             .clickable { expanded = !expanded }
             .border(
                 width = 2.dp,
-                color = Color.Gray, // Chỉnh màu viền ở đây
+                color = LightPeriwinkleBlue, // Chỉnh màu viền ở đây
                 shape = RoundedCornerShape(16.dp) // Phải khớp với shape của Card
             )
     ) {
@@ -81,13 +85,14 @@ fun ExpandableWorkoutCard(workout: WorkoutItem) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = workout.description, // hiện mô tả
-                        style = MaterialTheme.typography.bodyMedium
+                        color = Pink40,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = workout.subDescr, // hiện chi tiết mô tả
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Gray1
                     )
                 }
             }

@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -44,6 +46,7 @@ fun Login(navController: NavController) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -88,15 +91,29 @@ fun Login(navController: NavController) {
             colors = rememberTextFieldColors(),
             leadingIcon = {
                 Icon(
-                    painterResource(R.drawable.ic_lock),
+                    painter = painterResource(R.drawable.ic_lock),
                     contentDescription = null,
-                    tint = Gray1 // Màu icon
+                    tint = Gray1
                 )
             },
+            trailingIcon = {
+                val image = if (passwordVisible)
+                    painterResource(id = R.drawable.pass_appear_svg)
+                else
+                    painterResource(id = R.drawable.pass_disappear_svg)
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        painter = image,
+                        contentDescription = if (passwordVisible) "Ẩn mật khẩu" else "Hiện mật khẩu"
+                    )
+                }
+            },
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(2.dp, Gray1, RoundedCornerShape(15.dp)),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
+                .border(2.dp, Gray1, RoundedCornerShape(15.dp))
         )
         Spacer(modifier = Modifier.height(12.dp))
 

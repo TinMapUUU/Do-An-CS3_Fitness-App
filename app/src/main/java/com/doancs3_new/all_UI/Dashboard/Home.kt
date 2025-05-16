@@ -26,8 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +38,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.doancs3_new.Data.Logic.ChangeCheckpointLine
 import com.doancs3_new.Data.Model.Workout
+import com.doancs3_new.R
 import com.doancs3_new.Viewmodel.ProgressLogViewModel
 import com.doancs3_new.Viewmodel.SharedViewModel
 import com.doancs3_new.Viewmodel.WorkoutsViewModel
@@ -285,7 +288,7 @@ fun generateWorkoutPlan(aim: String, allWorkouts: List<Workout>, totalDays: Int 
         generatedWorkouts[dayIndex % generatedWorkouts.size]
     }
 }
-
+//Thanh bar
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
@@ -293,11 +296,23 @@ fun BottomNavigationBar(
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        BottomNavItem("Trang Chủ", Icons.Default.Home, "Home"),
-        BottomNavItem("Hồ Sơ", Icons.Default.Person, "Profile"),
-        BottomNavItem("Bài Tập", Icons.Default.Person, "ListWorkout"),
+        BottomNavItem(
+            "Trang Chủ",
+            iconPainter = painterResource(id = R.drawable.house_svg),
+            route = "Home"
+        ),
+        BottomNavItem(
+            "Hồ Sơ",
+            iconPainter = painterResource(id = R.drawable.person_svg),
+            route = "Profile"
+        ),
+        BottomNavItem(
+            "Bài Tập",
+            iconPainter = painterResource(id = R.drawable.listbook_svg),
+            route = "ListWorkout"
+        )
     )
-
+// SET UP BAR
     BottomNavigation(
         backgroundColor = backgroundColor,
         modifier = modifier
@@ -307,7 +322,13 @@ fun BottomNavigationBar(
 
         items.forEach { item ->
             BottomNavigationItem(
-                icon = { Icon(item.icon, contentDescription = item.title) },
+                icon = @androidx.compose.runtime.Composable {
+                    item.iconPainter?.let {
+                        Icon(painter = it, contentDescription = item.title)
+                    } ?: item.iconVector?.let {
+                        Icon(imageVector = it, contentDescription = item.title)
+                    }
+                },
                 label = { Text(item.title) },
                 selected = currentDestination == item.route,
                 onClick = {
@@ -322,7 +343,13 @@ fun BottomNavigationBar(
         }
     }
 }
-data class BottomNavItem(val title: String, val icon: ImageVector, val route: String)
+data class BottomNavItem(
+    val title: String,
+    val iconVector: ImageVector? = null,
+    val iconPainter: Painter? = null,
+    val route: String
+)
+
 
 
 
